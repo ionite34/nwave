@@ -2,10 +2,12 @@
 name = "nwave"
 version = "0.1.0"
 description = ""
-authors = ["ionite34 <ionite@pm.me>"]
+authors = ["ionite34 <dev@ionite.io>"]
+license = "MIT"
+readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.7"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
