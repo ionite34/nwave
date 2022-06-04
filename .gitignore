@@ -1,6 +1,7 @@
 # Project Specific
 tests_profile/data/*.wav
 tests_profile/data/*.zip
+tests_profile/data/*.ini
 
 # Project Profiler
 tests_profile/*.pclprof
