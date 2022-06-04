@@ -2,6 +2,9 @@
 tests_profile/data/*.wav
 tests_profile/data/*.zip
 
+# Project Profiler
+tests_profile/*.pclprof
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
