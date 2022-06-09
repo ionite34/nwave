@@ -3,12 +3,14 @@ import logging
 import os
 import asyncio
 import aiofiles
-from numba import jit, njit
 import ffmpeg
 import soxr
 import numpy as np
 import soundfile as sf
+from scipy.io import wavfile
 import librosa
+from numba import njit
+from atomicwrites import AtomicWriter
 from nwave import Task, Config
 from line_profiler_pycharm import profile
 
@@ -25,6 +27,7 @@ def process_file(task: Task) -> (int, Task):
         logging.error(f"Error loading file {task.file_source}")
         return 1, task
 
+    # Resampling
     if cfg.sample_rate and cfg.sample_rate != sr:
         try:
             data = soxr.resample(data, sr, cfg.sample_rate, quality=cfg.resample_quality)
@@ -33,9 +36,10 @@ def process_file(task: Task) -> (int, Task):
             logging.error(f"Error resampling file {task.file_source}")
             return 1, task
 
+    # Silence Padding
     if cfg.silence_padding:
         start, end = cfg.silence_padding
-        data = jit_pad(data, sr, start, end)
+        data = pad(data, sr, start, end)
 
     # Skip if exists and no overwrite option
     if not task.overwrite and os.path.exists(task.file_output):
@@ -43,7 +47,9 @@ def process_file(task: Task) -> (int, Task):
         return 0, task
 
     try:
-        sf.write(task.file_output, data, sr, subtype=cfg.format)
+        with AtomicWriter(task.file_output, mode='wb', overwrite=task.overwrite).open() as f:
+            wavfile.write(f, sr, data)
+        # sf.write(task.file_output, data, sr, subtype=cfg.format)
     except IOError:
         logging.error(f"Error saving file {task.file_output}")
         return 1, task
@@ -51,7 +57,6 @@ def process_file(task: Task) -> (int, Task):
     return 0, task
 
 
-@profile
 async def async_process_file(task: Task) -> (int, Task):
     """
     Processes a single file
@@ -108,18 +113,25 @@ async def async_save(audio: bytes, file: str) -> None:
         await f.write(audio)
 
 
-def jit_pad(data: np.ndarray, sr: int, pad_s: int, pad_e: int) -> np.ndarray:
+@profile
+def pad(data: np.ndarray, sr: int, pad_s: int, pad_e: int) -> np.ndarray:
     """
-    Pads a wave array with zeros
+    Pads a wave array with silence
     """
     # Convert from ms to seconds
     pad_s = pad_s / 1000
     pad_e = pad_e / 1000
+    # Convert to samples
+    pad_s = int(pad_s * sr)
+    pad_e = int(pad_e * sr)
     # Generate arrays using sample rate
-    pad_start_samples = np.zeros(int(pad_s * sr))
-    pad_end_samples = np.zeros(int(pad_e * sr))
+    pad_start_samples = np.zeros(pad_s, dtype=np.float32)
+    if pad_e == pad_s:
+        pad_end_samples = pad_start_samples
+    else:
+        pad_end_samples = np.zeros(pad_e, dtype=np.float32)
     # Concatenate arrays and return
-    return np.concatenate((pad_start_samples, data, pad_end_samples))
+    return np.concatenate((pad_start_samples, data, pad_end_samples), dtype=np.float32)
 
 
 @profile
