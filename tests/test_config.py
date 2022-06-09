@@ -9,9 +9,9 @@ def test_config():
 
 
 @pytest.mark.parametrize('arg, expect_exception', [
+    ({'sample_rate': 32000}, False),
     ({'sample_rate': -1000}, True),
-    ({'sample_rate': -1000}, True),
-    ({'sample_rate': -1000}, True),
+    ({'resample_quality': 'QQ'}, False),
     ({'resample_quality': 'UQ'}, True),
     ({'silence_padding': (-1000, 0)}, True),
     ({'silence_padding': (0, -1000)}, True),
