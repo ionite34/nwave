@@ -1,17 +1,11 @@
-# Exceptions
-
-# Task Exception
 from __future__ import annotations
-
-from types import TracebackType
 
 
 class TaskException(Exception):
-    """
-    Base Task Exception
-    """
-
-    def __init__(self, exception: Exception, raised_by: str, tb: TracebackType | None = None):
+    def __init__(self, exception: Exception, raised_by: str):
+        """ Initialize a new TaskException. """
         super().__init__(exception)
-        self.__traceback__ = tb
         self.raised_by = raised_by
+
+    def __str__(self):
+        return f"During [{self.raised_by}] -> {self.args[0]}"
