@@ -9,8 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 from joblib import Parallel, delayed
 from tqdm.auto import tqdm
 
-from nwave import Task, Config
-from nwave import audio
+from nwave import Task, effects, audio, WaveCore, Batch
 from tests_profile import data
 
 
@@ -60,33 +59,33 @@ class Time:
             print(f"Elapsed: {self.t_format(self.delta())}")
 
 
-def profile_audio(n_files: int, cfg: Config, batch_num: int = 1):
+def profile_audio(n_files: int, cfg, batch_num: int = 1):
     # Get a list of files
     total = data.enum_batch(n_files, batch_num)
     with Time(verbose=True):
         for batch in tqdm(total):
             for in_f, out_f in batch:
                 task = Task(in_f, out_f, cfg, overwrite=True)
-                audio.process_file(task)
+                audio.process(task)
 
 
-def profile_audio_parallel(n_files: int, cfg: Config, threads: int, batch_num: int = 1):
+def profile_audio_parallel(n_files: int, cfg, threads: int, batch_num: int = 1):
     total = data.enum_batch(n_files, batch_num)
     with Time(verbose=True):
         with Parallel(n_jobs=threads, backend='threading') as thread_pool:
             for batch in total:
-                thread_pool(delayed(audio.process_file)(
+                thread_pool(delayed(audio.process)(
                     Task(in_f, out_f, cfg, overwrite=True)
                 ) for in_f, out_f in batch)
 
 
-def profile_audio_threadpool(n_files: int, cfg: Config, threads: int, batch_num: int = 1):
+def profile_audio_threadpool(n_files: int, cfg, threads: int, batch_num: int = 1):
     total = data.enum_batch(n_files, batch_num)
     with Time(verbose=True):
         with ThreadPoolExecutor(max_workers=threads) as executor:
             for batch in total:
                 tasks = {executor.submit(
-                    audio.process_file, Task(in_f, out_f, cfg, overwrite=True)
+                    audio.process, Task(in_f, out_f, cfg, overwrite=True)
                 ): (in_f, out_f) for (in_f, out_f) in batch}
             # Wait for all tasks to complete
             for future in tqdm(futures.as_completed(tasks)):
@@ -97,13 +96,41 @@ def profile_audio_threadpool(n_files: int, cfg: Config, threads: int, batch_num:
                     print(future.exception())
 
 
-def profile_audio_thread_map(n_files: int, cfg: Config, threads: int, batch_num: int = 1):
+def profile_audio_thread_map(n_files: int, cfg, threads: int, batch_num: int = 1):
     total = data.enum_batch(n_files, batch_num)
     with Time(verbose=True):
         with ThreadPoolExecutor(max_workers=threads) as thread_pool:
             for batch in total:
                 jobs = [Task(in_f, out_f, cfg, overwrite=True) for in_f, out_f in batch]
-                results = thread_pool.map(audio.process_file, jobs)
+                thread_pool.map(audio.process, jobs)
+
+
+def profile_audio_nwave(n_files: int, cfg, threads: int, batch_num: int = 1):
+    with WaveCore(n_threads=threads) as core:
+        for batch in data.enum_batch(n_files, batch_num):
+            for in_f, out_f in batch:
+                task = Task(in_f, out_f, cfg, overwrite=True)
+                core.schedule([task])
+        with Time(verbose=True):
+            core.wait_all()
+
+
+def profile_audio_nwave_cus(n_files: int, cfg, threads: int, batch_num: int = 1):
+    with WaveCore(n_threads=threads) as core:
+        in_files = []
+        out_files = []
+        for batch in data.enum_batch(n_files, batch_num):
+            for in_f, out_f in batch:
+                in_files.append(in_f)
+                out_files.append(out_f)
+            batch = Batch(in_files, out_files, overwrite=True)
+            batch = batch.apply(
+                effects.Resample(44100, quality='HQ'),
+                effects.PadSilence(0.5, 0.5)
+            ).export()
+        with Time(verbose=True):
+            core.schedule(batch)
+            core.wait_all()
 
 
 def clean_up():
@@ -119,40 +146,53 @@ def clean_up():
 
 
 def main():
-    cfg = Config(
-        sample_rate=44100,
-        resample_quality='HQ',
-        silence_padding=(950, 950),
-    )
+    fx = [
+        effects.Resample(44100, quality='HQ'),
+        effects.PadSilence(0.5, 0.5)
+    ]
 
     n_files = 64
-    runs = 1
+    runs = 15
     threads = 20
     print(f'{n_files} files, {runs} batches')
 
     print('[Single]')
-    profile_audio(n_files, cfg, batch_num=runs)
+    # profile_audio(n_files, fx, batch_num=runs)
     print('-' * 3)
     clean_up()
     time.sleep(1)
 
     print('-' * 5)
     print(f'[Parallel] {threads} threads')
-    profile_audio_parallel(n_files, cfg, threads, batch_num=runs)
+    # profile_audio_parallel(n_files, fx, threads, batch_num=runs)
     print('-' * 3)
     clean_up()
     time.sleep(1)
 
     print('-' * 5)
     print(f'[Parallel (Threadpool)] {threads} threads')
-    profile_audio_threadpool(n_files, cfg, threads, batch_num=runs)
+    # profile_audio_threadpool(n_files, fx, threads, batch_num=runs)
     print('-' * 3)
     clean_up()
     time.sleep(1)
 
     print('-' * 5)
     print(f'[Parallel (Thread Map)] {threads} threads')
-    profile_audio_thread_map(n_files, cfg, threads, batch_num=runs)
+    # profile_audio_thread_map(n_files, fx, threads, batch_num=runs)
+    print('-' * 3)
+    clean_up()
+    time.sleep(1)
+
+    print('-' * 5)
+    print(f'[Parallel (NWave)] {threads} threads')
+    # profile_audio_nwave(n_files, fx, threads, batch_num=runs)
+    print('-' * 3)
+    clean_up()
+    time.sleep(1)
+
+    print('-' * 5)
+    print(f'[Parallel (NWave with Batch)] {threads} threads')
+    profile_audio_nwave_cus(n_files, fx, threads, batch_num=runs)
     print('-' * 3)
     clean_up()
     time.sleep(1)
