@@ -1,44 +1,60 @@
 # Audio Processing Batch
-from typing import Iterable
 from glob import glob
-from typing import Generator
-from .scheduler import Task, Config
+
+from .base import BaseEffect
+from .core import WaveCore
+from .scheduler import Task
 
 
 class Batch:
     """
     A batch of audio files to process.
     """
-
-    def __init__(self, source_files: list[str], target_files: list[str] = None,
+    def __init__(self, input_files: list[str], output_files: list[str] = None,
                  in_place: bool = False, overwrite: bool = False):
         """
         Initialize a new batch.
 
         Args:
-            source_files: List of source files to process.
+            input_files: List of source files to process.
+            output_files: List of target files to write.
             in_place: Whether to overwrite the source files, target_files must be None if this is True.
             overwrite: Whether to overwrite the target files.
         """
         if in_place and not overwrite:
             raise ValueError("In-place processing requires overwrite to be True.")
-        if in_place and target_files is not None:
+        if in_place and output_files is not None:
             raise ValueError("In-place processing requires target_files to be None.")
 
-        self.source_files = source_files
+        self.source_files = input_files
+        self.output_files = output_files
         self.overwrite = overwrite
         self.in_place = in_place
-        self.config = Config()
-        self.tasks = []
+        self.effects: list[BaseEffect] = []
 
-    def resample(self, sample_rate: int):
+    def run(self):
         """
-        Resample the batch.
+        Run the batch.
+        """
+        with WaveCore() as core:
+            tasks = self.export()
+            core.schedule(tasks)
+            return core.wait_all()
 
-        Args:
-            sample_rate: Target Sample Rate in Hz.
+    def run_yield(self):
         """
-        self.config.sample_rate = sample_rate
+        Run the batch and yield results.
+        """
+        with WaveCore() as core:
+            tasks = self.export()
+            core.schedule(tasks)
+            return core.yield_all()
+
+    def apply(self, *effects: BaseEffect):
+        """
+        Add effects to the batch.
+        """
+        self.effects.extend(effects)
         return self
 
     def export(self, target_files: list[str] = None, in_place: bool = False):
@@ -58,13 +74,15 @@ class Batch:
 
         if in_place:
             target_files = self.source_files
+        elif target_files is None:
+            target_files = self.output_files
 
         # Loop and yield tasks
         for source, target in zip(self.source_files, target_files):
-            yield Task(source, target, self.config.frozen(), self.overwrite)
+            yield Task(source, target, self.effects, self.overwrite)
 
     @classmethod
-    def fromGlob(cls, pattern: str):
+    def from_glob(cls, pattern: str):
         """
         Create a new batch from a glob pattern.
         """
