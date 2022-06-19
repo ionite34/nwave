@@ -1,10 +1,9 @@
 from collections import namedtuple
+from nwave.exceptions import TaskException
 import math
-
-import numpy as np
+import soxr
 import pytest
 import nwave.effects as fx
-from nwave.exceptions import TaskException
 
 # Named tuple of wave data
 Wave = namedtuple('Wave', ['data', 'sr'])
@@ -12,7 +11,7 @@ Wave = namedtuple('Wave', ['data', 'sr'])
 
 # Fixture to load an example audio from librosa and return (array, sample rate)
 @pytest.fixture(scope='module')
-def wav() -> Wave:
+def wav():
     import librosa
     sample = librosa.example('trumpet')
     data, sr = librosa.load(sample)
@@ -63,3 +62,58 @@ def test_resample_exceptions_task(wav):
     data, sr = wav
     effect = fx.Resample(44100, 'HQ')
     effect.apply_trace(data, sr)
+
+
+def test_wrapper(wav):
+    # Create a test effect using soxr resample
+    effect = fx.Wrapper(soxr.resample, data_arg='x', sr_arg='in_rate',
+                        output_sr_override=48500,
+                        out_rate=48500, quality='MQ')
+    # Load data
+    data, sr = wav
+    assert sr == 22050
+    # Do the resample
+    re_data, re_sr = effect.apply_trace(data, sr)
+    assert re_sr == 48500
+    # We expect the data to be a factor of the original
+    expected_factor = 48500 / sr
+    factor = len(re_data) / len(data)
+    assert math.isclose(factor, expected_factor, rel_tol=0.01)  # 1% tolerance
+
+    # Now test the auto result ordering
+    def in_order(x, in_rate):
+        return x, in_rate
+
+    def rev_order(x, in_rate):
+        return in_rate, x
+
+    # Without override
+    def no_override(x, in_rate):
+        return x
+    effect = fx.Wrapper(no_override, data_arg='x', sr_arg='in_rate')
+    assert effect.apply_trace(data, sr) == (data, sr)
+
+    # In order
+    effect = fx.Wrapper(in_order, data_arg='x', sr_arg='in_rate')
+    result = effect.apply_trace(data, sr)
+    assert result == (data, sr)
+
+    # Reversed order, but output should be the same
+    effect = fx.Wrapper(rev_order, data_arg='x', sr_arg='in_rate')
+    result = effect.apply_trace(data, sr)
+    assert result == (data, sr)
+
+
+def test_wrapper_exceptions(wav):
+    # Not callable
+    with pytest.raises(TypeError):
+        # noinspection PyTypeChecker
+        fx.Wrapper(1, data_arg='x', sr_arg='in_rate')
+
+    # Wrong return type
+    def target(x_1):
+        return 1.0
+    with pytest.raises(TaskException) as exc_info:
+        effect = fx.Wrapper(target, data_arg='x_1')
+        effect.apply_trace(wav[0], wav[1])
+    assert 'got float' in str(exc_info.value)
