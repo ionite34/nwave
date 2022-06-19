@@ -1,3 +1,2 @@
-from .task import Task
+from .task import Task, TaskResult
 from .config import Config, FrozenConfig
-from .worker import Worker
