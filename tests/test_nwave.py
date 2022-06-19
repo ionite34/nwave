@@ -2,7 +2,7 @@ import os
 from glob import glob
 
 from nwave import __version__
-from nwave import WaveCore, Batch
+from nwave import WaveCore, Batch, effects
 
 
 def test_version():
@@ -17,11 +17,13 @@ def test_wave_core(data_dir):
     with WaveCore() as core:
         # Create a task batch
         batch = Batch(src_files)
-        batch.resample(44100)
+        batch.apply(
+            effects.Resample(44100),
+        )
         staged = batch.export(out_files)
         # Add to scheduler
-        core.submit(staged)
+        core.schedule(staged)
         # Wait for all tasks to complete
-        for result in core.wait_all():
+        for result in core.yield_all():
             assert result.success
             assert result.error is None
