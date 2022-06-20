@@ -1,7 +1,7 @@
 # Base Audio Processing Effects and Resample Filters
 from abc import ABC, abstractmethod
 from numpy.typing import NDArray
-from ..exceptions import TaskException
+from ..scheduler import TaskException
 
 
 class BaseEffect(ABC):
@@ -25,7 +25,7 @@ class BaseEffect(ABC):
 
         Returns: NDArray of processed audio
         """
-        ...
+        ...  # pragma: no cover
 
     # Wrapper to run apply with exception tracing
     # Do not override this method in subclasses !
