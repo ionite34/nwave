@@ -20,7 +20,11 @@ def test_writer():
 def test_writer_exceptions():
     # Load a temp directory
     with TemporaryDirectory() as tmpdir:
-        # First test the file exists error
+        # File is Directory error
+        with pytest.raises(ValueError):
+            with Writer(tmpdir) as f:
+                f.write(b"test")
+        # File exists error
         open(join(tmpdir, "exists.res"), 'w').write("test")
         assert exists(join(tmpdir, "exists.res"))
         with pytest.raises(FileExistsError):

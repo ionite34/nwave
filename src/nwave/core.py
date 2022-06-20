@@ -4,7 +4,8 @@ from concurrent.futures import ThreadPoolExecutor, Future, CancelledError
 import os
 from warnings import warn
 from collections import deque
-from typing import Iterable, Iterator
+from typing import Iterator
+
 from .scheduler import Task, TaskResult, TaskException
 from .audio import process
 
@@ -42,16 +43,16 @@ class WaveCore:
         """ Number of tasks in queue """
         return len(self._task_queue)
 
-    def schedule(self, tasks: Iterable[Task]):
+    def schedule(self, batch: 'Batch'):
         """
         Submit a batch of tasks to the scheduler.
 
         Args:
-            tasks: Iterable of tasks to submit.
+            batch: Batch to schedule for running.
         """
-        for task in tasks:
-            ft = self._executor.submit(process, task)
-            self._task_queue.appendleft((ft, task))
+        self._task_queue.extend(
+            [(self._executor.submit(process, task), task) for task in batch.tasks]
+        )
 
     def yield_all(self, timeout: float = None) -> Iterator[TaskResult]:
         """
@@ -79,15 +80,13 @@ class WaveCore:
 
                 if task_exception is None:
                     yield TaskResult(task, True, None)
-                elif isinstance(task_exception, (TaskException, CancelledError)):
-                    yield TaskResult(task, False, task_exception)
                 else:
-                    warn(f"Unhandled Task exception during [{task}]: {task_exception}")
                     yield TaskResult(task, False, task_exception)
         finally:
             # Cancel all remaining tasks
             for ft, task in self._task_queue:
                 ft.cancel()
+            self._task_queue.clear()
 
     def wait_all(self, timeout: float = None) -> list[TaskResult]:
         """

@@ -1,26 +1,22 @@
+import os
+from glob import glob
+
 import pytest
 import typing
-from nwave import effects, Batch, Task, TaskResult, TaskException
+from nwave import effects, Batch, Task, TaskResult, TaskException, WaveCore
 
 
 def test_batch():
     # Create a batch
     batch = Batch(['file1.wav'], ['file1_out.wav'])
-    assert batch.source_files == ['file1.wav']
-    assert batch.output_files == ['file1_out.wav']
-    assert batch.in_place is False
     assert batch.overwrite is False
     # Add Effects
     batch.apply(
         effects.Resample(44100),
         effects.PadSilence(0.5, 0.5)
     )
-    # Export
-    assert isinstance(batch, Batch)
-    staged = batch.export()
-    assert isinstance(staged, typing.Generator)
-    # Unpack Generator
-    for task in staged:
+    # Unpack
+    for task in batch.tasks:
         assert isinstance(task, Task)
         # Check effects
         assert len(task.effects) == 2
@@ -28,12 +24,24 @@ def test_batch():
         assert isinstance(task.effects[1], effects.PadSilence)
 
 
+def test_batch_run_yield(data_dir):
+    # Get wav files in data_dir
+    src_files = glob(os.path.join(data_dir, "*.wav"))
+    out_files = [f.replace(".wav", "_out.wav") for f in src_files]
+    # Create a task batch
+    batch = Batch(src_files, out_files)
+    batch.apply(
+        effects.Resample(44100),
+    )
+    results = batch.run_yield()
+    for result in results:
+        assert isinstance(result, TaskResult)
+        assert result.success
+
+
 def test_batch_exceptions():
-    # Test init value checks
-    with pytest.raises(ValueError):  # in_place when overwrite is False
-        Batch(['file1.wav'], ['file1_out.wav'], in_place=True)
-    with pytest.raises(ValueError):  # in_place when target_files is not None
-        Batch(['file1.wav'], ['file1.wav'], in_place=True, overwrite=True)
+    with pytest.raises(ValueError):  # in_place when didn't set overwrite to True
+        Batch(['file1.wav'], ['file1.wav'])
 
 
 def test_run():
