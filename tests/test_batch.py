@@ -1,7 +1,6 @@
 import pytest
 import typing
-from nwave import Batch, Task, TaskResult, effects
-from nwave.exceptions import TaskException
+from nwave import effects, Batch, Task, TaskResult, TaskException
 
 
 def test_batch():
@@ -27,6 +26,14 @@ def test_batch():
         assert len(task.effects) == 2
         assert isinstance(task.effects[0], effects.Resample)
         assert isinstance(task.effects[1], effects.PadSilence)
+
+
+def test_batch_exceptions():
+    # Test init value checks
+    with pytest.raises(ValueError):  # in_place when overwrite is False
+        Batch(['file1.wav'], ['file1_out.wav'], in_place=True)
+    with pytest.raises(ValueError):  # in_place when target_files is not None
+        Batch(['file1.wav'], ['file1.wav'], in_place=True, overwrite=True)
 
 
 def test_run():

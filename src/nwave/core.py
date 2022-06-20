@@ -1,19 +1,12 @@
 import time
-from collections import namedtuple
-from concurrent.futures import ThreadPoolExecutor, wait, Future, CancelledError
-# noinspection PyProtectedMember
-from concurrent.futures._base import DoneAndNotDoneFutures
+from concurrent.futures import ThreadPoolExecutor, Future, CancelledError
 
 import os
 from warnings import warn
 from collections import deque
 from typing import Iterable, Iterator
-from .exceptions import TaskException
-from .scheduler import Task, TaskResult
+from .scheduler import Task, TaskResult, TaskException
 from .audio import process
-
-# Named Tuple for task results
-# TaskResult = namedtuple('TaskResult', ['task', 'success', 'error'])
 
 
 class WaveCore:
@@ -31,8 +24,7 @@ class WaveCore:
         # This is default behavior since Python 3.8, but this will standardize behavior
         self.threads = threads or min(32, (os.cpu_count() or 1) + 4)
         self.exit_wait = exit_wait
-        self._futures_queue: deque[Future] = deque()
-        self._tasks_queue: deque[Task] = deque()
+        self._task_queue: deque[(Future, Task)] = deque()
 
     def __enter__(self):
         self._executor = ThreadPoolExecutor(
@@ -48,7 +40,7 @@ class WaveCore:
     @property
     def n_tasks(self):
         """ Number of tasks in queue """
-        return len(self._tasks_queue)
+        return len(self._task_queue)
 
     def schedule(self, tasks: Iterable[Task]):
         """
@@ -58,22 +50,8 @@ class WaveCore:
             tasks: Iterable of tasks to submit.
         """
         for task in tasks:
-            if task.file_output in self._tasks_queue:
-                raise ValueError("Output file already exists")
             ft = self._executor.submit(process, task)
-            self._futures_queue.appendleft(ft)
-            self._tasks_queue.appendleft(task)
-
-    def submit(self, *tasks: Task):
-        """
-        Submit a batch of tasks to be run.
-
-        Args:
-            *tasks: Tasks to submit.
-
-        Returns:
-            A list of futures.
-        """
+            self._task_queue.appendleft((ft, task))
 
     def yield_all(self, timeout: float = None) -> Iterator[TaskResult]:
         """
@@ -89,23 +67,27 @@ class WaveCore:
         if timeout is not None:
             end_time = timeout + time.monotonic()
 
-        while self._futures_queue:
-            ft = self._futures_queue.pop()
-            task = self._tasks_queue.pop()
+        try:
+            while self._task_queue:
+                ft, task = self._task_queue.pop()
 
-            if timeout is None:
-                task_exception = ft.exception()
-            else:
-                # noinspection PyUnboundLocalVariable
-                task_exception = ft.exception(end_time - time.monotonic())
+                if timeout is None:
+                    task_exception = ft.exception()
+                else:
+                    # noinspection PyUnboundLocalVariable
+                    task_exception = ft.exception(end_time - time.monotonic())
 
-            if task_exception is None:
-                yield TaskResult(task, True, None)
-            elif isinstance(task_exception, (TaskException, CancelledError)):
-                yield TaskResult(task, False, task_exception)
-            else:
-                warn(f"Unhandled Task exception during [{task}]: {task_exception}")
-                yield TaskResult(task, False, task_exception)
+                if task_exception is None:
+                    yield TaskResult(task, True, None)
+                elif isinstance(task_exception, (TaskException, CancelledError)):
+                    yield TaskResult(task, False, task_exception)
+                else:
+                    warn(f"Unhandled Task exception during [{task}]: {task_exception}")
+                    yield TaskResult(task, False, task_exception)
+        finally:
+            # Cancel all remaining tasks
+            for ft, task in self._task_queue:
+                ft.cancel()
 
     def wait_all(self, timeout: float = None) -> list[TaskResult]:
         """
