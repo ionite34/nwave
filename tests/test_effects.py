@@ -1,5 +1,5 @@
 from collections import namedtuple
-from nwave.exceptions import TaskException
+from nwave import TaskException
 import math
 import soxr
 import pytest

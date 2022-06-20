@@ -5,21 +5,6 @@ import pytest
 from nwave.scheduler import task
 
 
-def test_task_exception():
-    # Create a TaskException
-    te = task.TaskException(ValueError('VE'))
-    assert str(te) == "VE"
-    with pytest.raises(task.TaskException):
-        raise te
-
-    # Test raising info
-    te = task.TaskException(ValueError('VE'), during='Step-1')
-    try:
-        raise te
-    except task.TaskException as e:
-        assert str(e) == "During Step-1 -> ValueError: VE"
-
-
 def test_task():
     # Create a Task
     t = task.Task('src.wav', 'dst.wav', [], True)
@@ -44,3 +29,18 @@ def test_task_result():
     # Check str for failed task
     tr = task.TaskResult(t, False, ValueError('test'))
     assert str(tr) == "Task: src.wav -> dst.wav\n[Failed]: test"
+
+
+def test_task_exception():
+    # Create a TaskException
+    te = task.TaskException(ValueError('VE'))
+    assert str(te) == "VE"
+    with pytest.raises(task.TaskException):
+        raise te
+
+    # Test raising info
+    te = task.TaskException(ValueError('VE'), during='Step-1')
+    try:
+        raise te
+    except task.TaskException as e:
+        assert str(e) == "During Step-1 -> ValueError: VE"

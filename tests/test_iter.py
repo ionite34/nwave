@@ -4,14 +4,14 @@ from collections.abc import Sized
 import pytest
 from tqdm import tqdm
 
-from nwave.common.iter import SizedGenerator, fixed_generator, LengthLike
+from nwave.common.iter import SizedGenerator, sized_generator, LengthLike
 
 
 @pytest.fixture(scope='function')
 def make_gen():
     size = 25
 
-    @fixed_generator(length=25)
+    @sized_generator(length=25)
     def _make_gen(size_in):
         yield from range(size_in)
 
@@ -63,13 +63,14 @@ def test_decorator(make_gen):
 def test_decorator_ex(make_gen):
     # Check invalid decorator use
     with pytest.raises(TypeError):
-        @fixed_generator(length=1)
+        @sized_generator(length=1)
         def _make_gen():
             return 1
+
         _make_gen()
 
 
-def test_fixed_gen():
+def test_sized_gen():
     # Create a generator
     gen = (i for i in range(10))
 
@@ -87,10 +88,18 @@ def test_fixed_gen():
     assert results == list(range(10))
 
 
+def test_sized_gen_ex():
+    # Test wrong LengthLike type
+    with pytest.raises(TypeError):
+        # noinspection PyTypeChecker
+        SizedGenerator((i for i in range(5)), 1.0)
+
+
 def test_fixed_gen_tqdm(capsys):
     # Create a generator and wrap it with FixedGenerator
     gen = (i for i in range(128))
-    f_gen = SizedGenerator(gen, 128)
+    # Use list as LengthLike source
+    f_gen = SizedGenerator(gen, [i for i in range(128)])
     assert len(f_gen) == 128
 
     # Check that it works with tqdm
