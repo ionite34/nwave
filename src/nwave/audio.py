@@ -9,11 +9,37 @@ import soundfile as sf
 import soxr
 from scipy.io import wavfile
 
+from .exceptions import TaskException
 from .scheduler import Task
 from . import interlocked
 
 
-def process_file(task: Task) -> (int, Task):
+# Set of extensions compatible with SoundFile
+
+
+def process(task: Task):
+    """
+    Processes a single file
+    """
+    # Load
+    try:
+        data, sr = librosa.load(task.file_source, sr=None)
+    except Exception as e:
+        raise TaskException(e, 'File Loading')
+
+    # Run all effects
+    for effect in task.effects:
+        data, sr = effect.apply_trace(data, sr)
+
+    # Normal write
+    try:
+        with interlocked.Writer(task.file_output, overwrite=task.overwrite) as f:
+            wavfile.write(f, sr, data)
+    except Exception as e:
+        raise TaskException(e, 'File Writing')
+
+
+def process_old(task: Task) -> (int, Task):
     """
     Processes a single file
     """

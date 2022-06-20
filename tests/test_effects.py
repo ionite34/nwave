@@ -19,6 +19,7 @@ def wav():
 
 
 @pytest.mark.parametrize('target_sr, quality', [
+    (int(22050), 'HQ'),  # No change path
     (int(44100), 'QQ'),
     (int(16050), 'LQ'),
     (float(44100), 'MQ'),
@@ -64,9 +65,32 @@ def test_resample_exceptions_task(wav):
     effect.apply_trace(data, sr)
 
 
+# Padding
+def test_pad_silence(wav):
+    # Load data
+    data, sr = wav
+    # Test for Pad class
+    effect = fx.PadSilence(0.25, 0.25)
+    out_data, out_sr = effect.apply_trace(data, sr)
+    assert out_sr == sr
+    # See if length has been correctly extended
+    original_time = len(data) / sr
+    res_time = len(out_data) / sr
+    # Expect 5 seconds of padding, with 1% tolerance
+    assert math.isclose(res_time, original_time + 0.5, rel_tol=0.01)
+
+
+def test_pad_silence_exceptions(wav):
+    # Non-positive padding
+    with pytest.raises(ValueError):
+        fx.PadSilence(-1, 0.25)
+
+
+# Wrapper
 def test_wrapper(wav):
     # Create a test effect using soxr resample
-    effect = fx.Wrapper(soxr.resample, data_arg='x', sr_arg='in_rate',
+    # Do not supply data arg, try as positional argument
+    effect = fx.Wrapper(soxr.resample, sr_arg='in_rate',
                         output_sr_override=48500,
                         out_rate=48500, quality='MQ')
     # Load data
@@ -80,7 +104,11 @@ def test_wrapper(wav):
     factor = len(re_data) / len(data)
     assert math.isclose(factor, expected_factor, rel_tol=0.01)  # 1% tolerance
 
-    # Now test the auto result ordering
+
+# Wrapper ordering
+def test_wrapper_ordering(wav):
+    data, sr = wav
+
     def in_order(x, in_rate):
         return x, in_rate
 
@@ -90,6 +118,7 @@ def test_wrapper(wav):
     # Without override
     def no_override(x, in_rate):
         return x
+
     effect = fx.Wrapper(no_override, data_arg='x', sr_arg='in_rate')
     assert effect.apply_trace(data, sr) == (data, sr)
 
@@ -113,7 +142,18 @@ def test_wrapper_exceptions(wav):
     # Wrong return type
     def target(x_1):
         return 1.0
+
     with pytest.raises(TaskException) as exc_info:
         effect = fx.Wrapper(target, data_arg='x_1')
         effect.apply_trace(wav[0], wav[1])
     assert 'got float' in str(exc_info.value)
+
+
+# Pitch Shift
+def test_pitch(wav):
+    # Load data
+    data, sr = wav
+    # Test for Pitch class
+    effect = fx.Pitch(1.1)
+    out_data, out_sr = effect.apply_trace(data, sr)
+    assert out_sr == sr  # Should be the same

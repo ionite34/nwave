@@ -16,7 +16,7 @@ from .audio import process
 # TaskResult = namedtuple('TaskResult', ['task', 'success', 'error'])
 
 
-class WaveCore(ThreadPoolExecutor):
+class WaveCore:
     def __init__(self, threads: int = None, exit_wait: bool = True):
         """
         Processor for wave tasks.

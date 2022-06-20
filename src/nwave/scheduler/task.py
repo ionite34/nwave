@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pprint import pformat
 import inspect
 from concurrent.futures import CancelledError
@@ -21,7 +23,7 @@ class Task:
 class TaskResult:
     task: Task
     success: bool
-    error: Exception = None
+    error: Exception | None = None
 
     def __str__(self):
         if self.success:
@@ -52,26 +54,8 @@ class TaskException(Exception):
         self.inner_type = exception.__class__.__name__
         self.raising_source = during
 
-        # Determine the name of the function that raised the exception.
-        # Careful not to leave references after init
-        stack = inspect.stack()
-        raising_instance = stack[1].frame.f_locals.get('self', None)
-        # Name of the raising class
-        self.raising_class = raising_instance.__class__.__name__ if raising_instance else None
-        # Name of the raising function
-        raising_method = stack[1].frame.f_code.co_name
-        # Raising variables in scope
-        self.cls_vars = stack[1].frame.f_code.co_varnames
-        self.raising_method = raising_method if raising_method else None
-
-        # If raised by a valid class, pretty format the instance variables.
-        # if raising_instance:
-        # self.cls_vars = vars(raising_instance)
-
     def __str__(self):
-        if self.raising_class:
-            msg = f"({self.inner_type}) {self.inner_exception} raised during {self.raising_class}.{self.raising_method}"
-            msg += f"\n{pformat(self.cls_vars)}"
-            return msg
+        if self.raising_source:
+            return f"During {self.raising_source} -> {self.inner_type}: {self.inner_exception}"
         else:
             return str(self.inner_exception)

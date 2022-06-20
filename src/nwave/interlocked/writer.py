@@ -1,6 +1,5 @@
 # Interlocked Write Handle
 from __future__ import annotations
-
 import os
 from os import PathLike
 import tempfile

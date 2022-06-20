@@ -1,4 +1,3 @@
-# Audio Effects
 from __future__ import annotations
 
 import numbers
@@ -16,7 +15,7 @@ __all__ = ['Resample', 'PadSilence']
 
 class Wrapper(BaseEffect):
     def __init__(self, function: Callable,
-                 data_arg: str, sr_arg: str | None = None,
+                 data_arg: str | None = None, sr_arg: str | None = None,
                  output_sr_override: float | None = None, **kwargs):
         """
         Wrapper for any Callable as an Audio Effect. The function
@@ -25,7 +24,8 @@ class Wrapper(BaseEffect):
 
         Args:
             callable: Callable to wrap
-            data_arg: Name of the data keyword argument of type NDArray
+            data_arg: Name of the data keyword argument of type NDArray. If
+                None, the first positional argument will be used.
             sr_arg: Name of the sample rate keyword argument of type float
             output_sr_override: Define a fixed output expected sample rate
                 for cases where only one element of NDArray is returned
@@ -44,19 +44,23 @@ class Wrapper(BaseEffect):
     def apply(self, data: NDArray, sr: float) -> tuple[NDArray, float]:
         # Add the data and sr keyword arguments
         kwargs = self._kwargs
-        kwargs[self._data_arg] = data
         if self._sr_arg:
             kwargs[self._sr_arg] = sr
-        # Get the result
-        result = self._function(**kwargs)
-        # Check if result is a NDArray, if so return the original sr with it
+        if self._data_arg:
+            kwargs[self._data_arg] = data
+            result = self._function(**kwargs)
+        else:
+            # If no data kwarg supplied, add the first positional argument as data
+            result = self._function(data, **kwargs)
+
+        # For NDArray, return the original sr with it
         if isinstance(result, np.ndarray):
             # If override is defined, return the override
             if self._output_sr_override is not None:
                 return result, self._output_sr_override
             else:
                 return result, sr
-        # Else if result is a 2 length tuple, return the correct ordered result
+        # For 2 length tuple, return the correct ordered result
         elif isinstance(result, tuple) and len(result) == 2:
             if isinstance(result[0], np.ndarray) and isinstance(result[1], numbers.Real):
                 return result[0], result[1]
@@ -136,4 +140,3 @@ class Pitch(BaseEffect):
         Changes the pitch of the audio.
         """
         return librosa.effects.pitch_shift(data, sr, self.semitones), sr
-
