@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from pprint import pformat
-import inspect
 from concurrent.futures import CancelledError
 from dataclasses import dataclass
-from ..base import BaseEffect
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..base import BaseEffect
 
 
 @dataclass(frozen=True)
