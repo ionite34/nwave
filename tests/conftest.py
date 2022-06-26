@@ -1,21 +1,23 @@
 import pytest
 import os
-import shutil
+import gzip
 import tempfile
-import librosa
+from importlib.resources import files
+
+from . import data
 
 
 @pytest.fixture(scope="function")
 def data_dir():
     """
-    Copies test .wav files from librosa and returns temp directory
+    Duplicates test .wav files and returns temp directory
     """
-    with tempfile.TemporaryDirectory() as tmpdir:
-        # Download test .wav files
-        sample = librosa.example('trumpet')
-        # Copy file duplicated 5 times to temp directory
-        for i in range(5):
+    n_copies = 5
+    wav_zip = str(files(data).joinpath("sample.wav.gz"))
+    with tempfile.TemporaryDirectory() as tmpdir, gzip.open(wav_zip, 'rb') as f:
+        read_data = f.read()
+        for i in range(n_copies):
             target = os.path.join(tmpdir, f'test_{i}.wav')
-            shutil.copy(sample, target)
-        assert len(os.listdir(tmpdir)) == 5
+            with open(target, 'wb') as out:
+                out.write(read_data)
         yield tmpdir

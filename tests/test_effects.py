@@ -1,21 +1,25 @@
-from collections import namedtuple
-from nwave import TaskException
+import gzip
 import math
-import soxr
+import os
+from glob import glob
+from importlib.resources import files
+
 import pytest
+import soxr
+from scipy.io import wavfile
+
 import nwave.effects as fx
+from nwave import TaskException
+from . import data
 
-# Named tuple of wave data
-Wave = namedtuple('Wave', ['data', 'sr'])
 
-
-# Fixture to load an example audio from librosa and return (array, sample rate)
+# Fixture to load an example audio and return (array, sample rate)
 @pytest.fixture(scope='module')
 def wav():
-    import librosa
-    sample = librosa.example('trumpet')
-    data, sr = librosa.load(sample)
-    return data, sr
+    wav_zip = str(files(data).joinpath("sample.wav.gz"))
+    with gzip.open(wav_zip, 'rb') as f:
+        sr, arr = wavfile.read(f)
+        return arr, sr
 
 
 @pytest.mark.parametrize('target_sr, quality', [

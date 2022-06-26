@@ -1,19 +1,9 @@
-# Audio loading and transformation / converts
 from __future__ import annotations
 
-import os
-import logging
-import librosa
-import numpy as np
-import soundfile as sf
-import soxr
 from scipy.io import wavfile
 
 from .scheduler import Task, TaskException
 from . import interlocked
-
-
-# Set of extensions compatible with SoundFile
 
 
 def process(task: Task):
@@ -22,7 +12,8 @@ def process(task: Task):
     """
     # Load
     try:
-        data, sr = librosa.load(task.file_source, sr=None)
+        # data, sr = librosa.load(task.file_source, sr=None)
+        sr, data = wavfile.read(task.file_source)
     except Exception as e:
         raise TaskException(e, 'File Loading')
 

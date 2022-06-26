@@ -3,7 +3,6 @@ from __future__ import annotations
 import numbers
 from typing import Callable
 from numpy.typing import NDArray
-import librosa
 import numpy as np
 
 from .base import BaseEffect
@@ -139,4 +138,5 @@ class Pitch(BaseEffect):
         """
         Changes the pitch of the audio.
         """
-        return librosa.effects.pitch_shift(data, sr, self.semitones), sr
+        raise NotImplementedError()
+        # return librosa.effects.pitch_shift(data, sr, self.semitones), sr
