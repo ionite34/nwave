@@ -1,13 +1,13 @@
 import time
+from collections.abc import Generator
 from concurrent.futures import ThreadPoolExecutor, Future, CancelledError
 
 import os
-from warnings import warn
 from collections import deque
-from typing import Iterator
 
 from .scheduler import Task, TaskResult, TaskException
 from .audio import process
+from .common.iter import sized_generator, SizedGenerator
 
 
 class WaveCore:
@@ -54,7 +54,7 @@ class WaveCore:
             [(self._executor.submit(process, task), task) for task in batch.tasks]
         )
 
-    def yield_all(self, timeout: float = None) -> Iterator[TaskResult]:
+    def yield_all(self, timeout: float = None) -> SizedGenerator[TaskResult]:
         """
         Wait for all tasks to finish, process results as they come in.
 
@@ -63,30 +63,32 @@ class WaveCore:
             Set to 0 to cancel all in-progress tasks.
 
         Returns:
-            Iterator of TaskResult
+            SizedGenerator of TaskResult
         """
-        if timeout is not None:
-            end_time = timeout + time.monotonic()
+        @sized_generator(len(self._task_queue))
+        def gen():
+            if timeout is not None:
+                end_time = timeout + time.monotonic()
 
-        try:
-            while self._task_queue:
-                ft, task = self._task_queue.pop()
+            try:
+                while self._task_queue:
+                    ft, task = self._task_queue.pop()
 
-                if timeout is None:
-                    task_exception = ft.exception()
-                else:
-                    # noinspection PyUnboundLocalVariable
-                    task_exception = ft.exception(end_time - time.monotonic())
+                    if timeout is None:
+                        task_exception = ft.exception()
+                    else:
+                        task_exception = ft.exception(end_time - time.monotonic())
 
-                if task_exception is None:
-                    yield TaskResult(task, True, None)
-                else:
-                    yield TaskResult(task, False, task_exception)
-        finally:
-            # Cancel all remaining tasks
-            for ft, task in self._task_queue:
-                ft.cancel()
-            self._task_queue.clear()
+                    if task_exception is None:
+                        yield TaskResult(task, True, None)
+                    else:
+                        yield TaskResult(task, False, task_exception)
+            finally:
+                # Cancel all remaining tasks
+                for ft, task in self._task_queue:
+                    ft.cancel()
+                self._task_queue.clear()
+        return gen()
 
     def wait_all(self, timeout: float = None) -> list[TaskResult]:
         """
