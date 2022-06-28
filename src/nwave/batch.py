@@ -32,6 +32,9 @@ class Batch:
     def run(self) -> list[TaskResult]:
         """
         Run the batch.
+
+        Returns:
+            A list of TaskResults.
         """
         with WaveCore() as core:
             core.schedule(self)
@@ -42,7 +45,7 @@ class Batch:
         Run the batch and yield results.
 
         Returns:
-            A generator of TaskResult objects.
+            A generator of TaskResults.
         """
         with WaveCore() as core:
             core.schedule(self)
