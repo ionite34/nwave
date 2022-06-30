@@ -1,7 +1,5 @@
 import gzip
 import math
-import os
-from glob import glob
 from importlib.resources import files
 
 import pytest
@@ -10,13 +8,13 @@ from scipy.io import wavfile
 
 import nwave.effects as fx
 from nwave import TaskException
-from . import data
+from . import data as test_data
 
 
 # Fixture to load an example audio and return (array, sample rate)
 @pytest.fixture(scope='module')
 def wav():
-    wav_zip = str(files(data).joinpath("sample.wav.gz"))
+    wav_zip = str(files(test_data).joinpath("sample.wav.gz"))
     with gzip.open(wav_zip, 'rb') as f:
         sr, arr = wavfile.read(f)
         return arr, sr
@@ -154,7 +152,7 @@ def test_wrapper_exceptions(wav):
 
 
 # Pitch Shift
-def test_pitch(wav):
+def t_pitch(wav):
     # Load data
     data, sr = wav
     # Test for Pitch class
