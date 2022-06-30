@@ -1,3 +1,4 @@
+from __future__ import annotations
 from collections.abc import Generator, Callable
 from functools import wraps
 from typing import Union, Sized
@@ -18,7 +19,7 @@ class Length:
             raise TypeError(f'Length must be an int or a Sized object, not {type(source)}')
 
     @property
-    def value(self):
+    def value(self) -> int:
         if self._call is not None:
             return self._call.__len__()
         return self._length
@@ -49,7 +50,7 @@ class SizedGenerator(Generator):
     def throw(self, *args, **kwargs):
         return self._gen.throw(*args, **kwargs)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self._length.value
 
 
@@ -59,7 +60,5 @@ def sized_generator(length: LengthLike = None):
         @wraps(func)
         def wrapper(*args, **kwargs):
             return SizedGenerator(func(*args, **kwargs), length=length)
-
         return wrapper
-
     return deco
