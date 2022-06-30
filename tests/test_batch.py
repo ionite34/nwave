@@ -2,7 +2,6 @@ import os
 from glob import glob
 
 import pytest
-import typing
 from nwave import effects, Batch, Task, TaskResult, TaskException, WaveCore
 
 
@@ -37,11 +36,6 @@ def test_batch_run_yield(data_dir):
     for result in results:
         assert isinstance(result, TaskResult)
         assert result.success
-
-
-def test_batch_exceptions():
-    with pytest.raises(ValueError):  # in_place when didn't set overwrite to True
-        Batch(['file1.wav'], ['file1.wav'])
 
 
 def test_run():

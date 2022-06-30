@@ -22,9 +22,6 @@ class Batch:
             output_files: List of target files to write.
             overwrite: Whether to overwrite the target files.
         """
-        if not overwrite and input_files == output_files:
-            raise ValueError("In-place processing requires overwrite to be True.")
-
         self.overwrite = overwrite
         self.effects: list[BaseEffect] = []
         self.tasks = [Task(src, dst, self.effects, self.overwrite) for src, dst in zip(input_files, output_files)]
