@@ -138,5 +138,5 @@ class Pitch(BaseEffect):
         """
         Changes the pitch of the audio.
         """
-        raise NotImplementedError()
-        # return librosa.effects.pitch_shift(data, sr, self.semitones), sr
+        import librosa
+        return librosa.effects.pitch_shift(data, sr, self.semitones), sr
