@@ -1,6 +1,3 @@
-import pytest
-
-# noinspection PyProtectedMember
 from nwave.base import BaseEffect
 
 
@@ -10,11 +7,11 @@ def test_base_effect():
         def __init__(self):
             super().__init__()
 
-        def apply(self, dt1):
-            return dt1
+        def apply(self, data, sr):
+            return data, sr
 
-        def apply_trace(self, data):
-            return self.apply(data)
+        def apply_trace(self, data, sr):
+            return self.apply(data, sr)
 
     # Create an instance of MyEffect
     effect = MyEffect()

@@ -1,7 +1,6 @@
 import pytest
 from unittest.mock import patch
 from os.path import join
-from os import listdir
 from glob import glob
 from nwave import audio, Task, TaskException
 
