@@ -1,0 +1,49 @@
+name: Tests
+
+on: [workflow_call]
+
+jobs:
+  tests:
+    name: Tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
+        poetry-version: ["1.1.13"]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            poetry-cache: ~/.cache/pypoetry
+          - os: macos-latest
+            poetry-cache: ~/Library/Caches/pypoetry
+          - os: windows-latest
+            poetry-cache: $HOME/AppData/Local/pypoetry/Cache
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Cache Poetry
+      uses: actions/cache@v2
+      with:
+        path: ~/.cache/pypoetry
+        key: poetry-cache-${{ matrix.os }}-${{ matrix.poetry-cache }}-${{ matrix.python-version }}-${{ matrix.poetry-version }}
+
+    - name: Setup Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Run Poetry image
+      uses: abatilo/actions-poetry@v2.0.0
+      with:
+        poetry-version: ${{ matrix.poetry-version }}
+
+    - name: Install requirements
+      run: |
+        poetry install
+
+    - name: Run Tests
+      run: |
+        poetry run pytest
