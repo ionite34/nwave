@@ -1,6 +1,6 @@
 import gzip
 import math
-from importlib.resources import files
+from importlib.resources import path
 
 import pytest
 import soxr
@@ -14,10 +14,10 @@ from . import data as test_data
 # Fixture to load an example audio and return (array, sample rate)
 @pytest.fixture(scope='module')
 def wav():
-    wav_zip = str(files(test_data).joinpath("sample.wav.gz"))
-    with gzip.open(wav_zip, 'rb') as f:
-        sr, arr = wavfile.read(f)
-        return arr, sr
+    with path(test_data, "sample.wav.gz") as p:
+        with gzip.open(p, 'rb') as f:
+            sr, arr = wavfile.read(f)
+            return arr, sr
 
 
 @pytest.mark.parametrize('target_sr, quality', [
