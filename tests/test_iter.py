@@ -4,7 +4,7 @@ from collections.abc import Sized
 import pytest
 from tqdm import tqdm
 
-from nwave.common.iter import SizedGenerator, sized_generator, LengthLike
+from nwave.common.iter import SizedGenerator, sized_generator
 
 
 @pytest.fixture(scope='function')
@@ -25,8 +25,7 @@ def make_gen():
     ((x for x in range(3)), False),  # Generator
 ])
 def test_length_like(value, expected):
-    # Try with int
-    assert isinstance(value, LengthLike) == expected
+    isinstance(value, (int, Sized)) == expected
 
 
 def test_length_like_ex():
@@ -36,8 +35,8 @@ def test_length_like_ex():
     with pytest.raises(TypeError):
         # noinspection PyTypeChecker
         len(gen)
-    # Try with generator
-    assert not isinstance(gen, LengthLike)
+    # Generator should not be Sized
+    assert not isinstance(gen, Sized)
 
 
 def test_decorator(make_gen):

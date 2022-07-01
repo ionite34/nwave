@@ -1,22 +1,20 @@
 from __future__ import annotations
 from collections.abc import Generator, Callable
 from functools import wraps
-from typing import Union, Sized
-
-LengthLike = Union[int, Sized]
+from typing import Sized
 
 
 class Length:
-    def __init__(self, source: LengthLike):
+    def __init__(self, length_like: int | Sized):
         self._length: int = 0
         self._call: Callable[None, int] | None = None
 
-        if isinstance(source, int):
-            self._length = source
-        elif isinstance(source, Sized):
-            self._call = source
+        if isinstance(length_like, int):
+            self._length = length_like
+        elif isinstance(length_like, Sized):
+            self._call = length_like
         else:
-            raise TypeError(f'Length must be an int or a Sized object, not {type(source)}')
+            raise TypeError(f'Length must be an int or a Sized object, not {type(length_like)}')
 
     @property
     def value(self) -> int:
