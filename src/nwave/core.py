@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor, Future
 import os
 from collections import deque
 
-from .scheduler import Task, TaskResult, TaskException
+from .scheduler import Task, TaskResult
 from .audio import process
 from .common.iter import sized_generator, SizedGenerator
 
