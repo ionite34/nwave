@@ -1,7 +1,9 @@
 from __future__ import annotations
 from collections.abc import Generator, Callable
 from functools import wraps
-from typing import Sized
+from typing import Sized, TypeVar
+
+T = TypeVar('T')
 
 
 class Length:
@@ -23,8 +25,8 @@ class Length:
         return self._length
 
 
-class SizedGenerator(Generator):
-    def __init__(self, gen: Generator, length: LengthLike):
+class SizedGenerator(Generator[T, None, None]):
+    def __init__(self, gen: Generator[T, None, None], length: int | Sized):
         """
         Generator with fixed size.
 
@@ -37,11 +39,12 @@ class SizedGenerator(Generator):
             raise TypeError(f"Expected Generator, got {type(gen)}")
         self._gen = gen
         self._length = Length(length)
+        self._max = self._length.value  # Use first value to set max
         self._index = 0
 
     def send(self, *args, **kwargs):
         if self._index > self._length.value:
-            self.throw(IndexError(f"Index out of range: {self._index}. Length defined as {self._length}."))
+            self.throw(IndexError(f"Iteration out of range: {self._index}/{self._length}"))
         self._index += 1
         return self._gen.send(*args, **kwargs)
 
@@ -49,14 +52,16 @@ class SizedGenerator(Generator):
         return self._gen.throw(*args, **kwargs)
 
     def __len__(self) -> int:
-        return self._length.value
+        return self._length.value - self._index
 
 
 # Wrapper decorator for generators
-def sized_generator(length: LengthLike = None):
+def sized_generator(length: int | Sized | None = None):
     def deco(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
             return SizedGenerator(func(*args, **kwargs), length=length)
+
         return wrapper
+
     return deco
