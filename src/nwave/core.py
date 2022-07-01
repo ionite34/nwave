@@ -1,6 +1,5 @@
 import time
-from collections.abc import Generator
-from concurrent.futures import ThreadPoolExecutor, Future, CancelledError
+from concurrent.futures import ThreadPoolExecutor, Future
 
 import os
 from collections import deque
