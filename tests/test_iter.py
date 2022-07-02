@@ -25,7 +25,7 @@ def make_gen():
     ((x for x in range(3)), False),  # Generator
 ])
 def test_length_like(value, expected):
-    isinstance(value, (int, Sized)) == expected
+    assert isinstance(value, (int, Sized)) == expected
 
 
 def test_length_like_ex():
