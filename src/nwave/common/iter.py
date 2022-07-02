@@ -1,9 +1,7 @@
 from __future__ import annotations
 from collections.abc import Generator, Callable
 from functools import wraps
-from typing import Sized, TypeVar
-
-T = TypeVar('T')
+from typing import Sized
 
 
 class Length:
@@ -25,8 +23,8 @@ class Length:
         return self._length
 
 
-class SizedGenerator(Generator[T, None, None]):
-    def __init__(self, gen: Generator[T, None, None], length: int | Sized):
+class SizedGenerator(Generator):
+    def __init__(self, gen: Generator, length: int | Sized):
         """
         Generator with fixed size.
 
