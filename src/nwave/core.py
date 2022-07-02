@@ -54,7 +54,7 @@ class WaveCore:
             [(self._executor.submit(process, task), task) for task in batch.tasks]
         )
 
-    def yield_all(self, timeout: float = None) -> ty.Generator[TaskResult]:
+    def yield_all(self, timeout: float = None) -> ty.Iterator[TaskResult]:
         """
         Wait for all tasks to finish, process results as they come in.
 
@@ -63,7 +63,7 @@ class WaveCore:
             Set to 0 to cancel all in-progress tasks.
 
         Returns:
-            SizedGenerator of TaskResult
+            Sized Iterator of TaskResult
         """
         @sized_generator(len(self._task_queue))
         def gen():
