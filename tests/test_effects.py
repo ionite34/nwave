@@ -12,22 +12,25 @@ from . import data as test_data
 
 
 # Fixture to load an example audio and return (array, sample rate)
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def wav():
     with path(test_data, "sample.wav.gz") as p:
-        with gzip.open(p, 'rb') as f:
+        with gzip.open(p, "rb") as f:
             sr, arr = wavfile.read(f)
             return arr, sr
 
 
-@pytest.mark.parametrize('target_sr, quality', [
-    (int(22050), 'HQ'),  # No change path
-    (int(44100), 'QQ'),
-    (int(16050), 'LQ'),
-    (float(44100), 'MQ'),
-    (float(16050), 'HQ'),
-    (float(22050.5), 'VHQ'),
-])
+@pytest.mark.parametrize(
+    "target_sr, quality",
+    [
+        (int(22050), "HQ"),  # No change path
+        (int(44100), "QQ"),
+        (int(16050), "LQ"),
+        (float(44100), "MQ"),
+        (float(16050), "HQ"),
+        (float(22050.5), "VHQ"),
+    ],
+)
 def test_resample(wav, target_sr, quality):
     # Load data
     data, sr = wav
@@ -45,11 +48,14 @@ def test_resample(wav, target_sr, quality):
 
 
 # Test Resample Exceptions
-@pytest.mark.parametrize('target_sr, quality, ex', [
-    (44100, 'NA', ValueError),
-    (44100, 5, ValueError),
-    ('A', 'HQ', ValueError),
-])
+@pytest.mark.parametrize(
+    "target_sr, quality, ex",
+    [
+        (44100, "NA", ValueError),
+        (44100, 5, ValueError),
+        ("A", "HQ", ValueError),
+    ],
+)
 def test_resample_exceptions(wav, target_sr, quality, ex):
     # Load data
     data, sr = wav
@@ -63,7 +69,7 @@ def test_resample_exceptions(wav, target_sr, quality, ex):
 def test_resample_exceptions_task(wav):
     # Load data
     data, sr = wav
-    effect = fx.Resample(44100, 'HQ')
+    effect = fx.Resample(44100, "HQ")
     effect.apply_trace(data, sr)
 
 
@@ -92,9 +98,13 @@ def test_pad_silence_exceptions(wav):
 def test_wrapper(wav):
     # Create a test effect using soxr resample
     # Do not supply data arg, try as positional argument
-    effect = fx.Wrapper(soxr.resample, sr_arg='in_rate',
-                        output_sr_override=48500,
-                        out_rate=48500, quality='MQ')
+    effect = fx.Wrapper(
+        soxr.resample,
+        sr_arg="in_rate",
+        output_sr_override=48500,
+        out_rate=48500,
+        quality="MQ",
+    )
     # Load data
     data, sr = wav
     assert sr == 22050
@@ -121,16 +131,16 @@ def test_wrapper_ordering(wav):
     def no_override(x, in_rate):
         return x
 
-    effect = fx.Wrapper(no_override, data_arg='x', sr_arg='in_rate')
+    effect = fx.Wrapper(no_override, data_arg="x", sr_arg="in_rate")
     assert effect.apply_trace(data, sr) == (data, sr)
 
     # In order
-    effect = fx.Wrapper(in_order, data_arg='x', sr_arg='in_rate')
+    effect = fx.Wrapper(in_order, data_arg="x", sr_arg="in_rate")
     result = effect.apply_trace(data, sr)
     assert result == (data, sr)
 
     # Reversed order, but output should be the same
-    effect = fx.Wrapper(rev_order, data_arg='x', sr_arg='in_rate')
+    effect = fx.Wrapper(rev_order, data_arg="x", sr_arg="in_rate")
     result = effect.apply_trace(data, sr)
     assert result == (data, sr)
 
@@ -139,16 +149,16 @@ def test_wrapper_exceptions(wav):
     # Not callable
     with pytest.raises(TypeError):
         # noinspection PyTypeChecker
-        fx.Wrapper(1, data_arg='x', sr_arg='in_rate')
+        fx.Wrapper(1, data_arg="x", sr_arg="in_rate")
 
     # Wrong return type
     def target(x_1):
         return 1.0
 
     with pytest.raises(TaskException) as exc_info:
-        effect = fx.Wrapper(target, data_arg='x_1')
+        effect = fx.Wrapper(target, data_arg="x_1")
         effect.apply_trace(wav[0], wav[1])
-    assert 'got float' in str(exc_info.value)
+    assert "got float" in str(exc_info.value)
 
 
 # Pitch Shift

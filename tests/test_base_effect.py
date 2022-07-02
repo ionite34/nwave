@@ -17,4 +17,4 @@ def test_base_effect():
     effect = MyEffect()
     assert isinstance(effect, MyEffect)
     assert isinstance(effect, BaseEffect)
-    assert effect.name == 'MyEffect'
+    assert effect.name == "MyEffect"

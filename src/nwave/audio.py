@@ -15,7 +15,7 @@ def process(task: Task):
         # data, sr = librosa.load(task.file_source, sr=None)
         sr, data = wavfile.read(task.file_source)
     except Exception as e:
-        raise TaskException(e, 'File Loading')
+        raise TaskException(e, "File Loading")
 
     # Run all effects
     for effect in task.effects:
@@ -26,4 +26,4 @@ def process(task: Task):
         with interlocked.Writer(task.file_output, overwrite=task.overwrite) as f:
             wavfile.write(f, sr, data)
     except Exception as e:
-        raise TaskException(e, 'File Writing')
+        raise TaskException(e, "File Writing")

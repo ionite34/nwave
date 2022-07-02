@@ -9,7 +9,7 @@ from nwave import WaveCore, Batch, effects
 
 
 def test_version():
-    assert __version__ == '0.1.0'
+    assert __version__ == "0.1.0"
 
 
 def test_core(data_dir):
@@ -48,7 +48,7 @@ def test_core_yield_all(data_dir):
         # Get first result
         next(results)
         # Now patch the `time.monotonic` function to raise an exception
-        with patch('time.monotonic', side_effect=RuntimeError):
+        with patch("time.monotonic", side_effect=RuntimeError):
             # Try to get the next results
             with pytest.raises(RuntimeError):
                 next(results)
@@ -58,9 +58,7 @@ def test_core_glob(data_dir):
     # Test glob mode
     with WaveCore() as core:
         batch = Batch.from_glob(
-            os.path.join(data_dir, "*.wav"),
-            data_dir,
-            overwrite=True
+            os.path.join(data_dir, "*.wav"), data_dir, overwrite=True
         )
         core.schedule(batch)
 
@@ -71,7 +69,4 @@ def test_core_glob(data_dir):
 def test_core_glob_ex():
     # Test no files found
     with pytest.raises(ValueError):
-        Batch.from_glob(
-            'no_exists/*.wav',
-            'no_exists/'
-        )
+        Batch.from_glob("no_exists/*.wav", "no_exists/")

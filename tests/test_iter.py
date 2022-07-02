@@ -7,7 +7,7 @@ from tqdm import tqdm
 from nwave.common.iter import SizedGenerator, sized_generator
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def make_gen():
     size = 25
 
@@ -18,12 +18,15 @@ def make_gen():
     return _make_gen(size)
 
 
-@pytest.mark.parametrize('value, expected', [
-    (1, True),  # int
-    ([1, 2, 3], True),  # list
-    (1.0, False),  # float
-    ((x for x in range(3)), False),  # Generator
-])
+@pytest.mark.parametrize(
+    "value, expected",
+    [
+        (1, True),  # int
+        ([1, 2, 3], True),  # list
+        (1.0, False),  # float
+        ((x for x in range(3)), False),  # Generator
+    ],
+)
 def test_length_like(value, expected):
     assert isinstance(value, (int, Sized)) == expected
 
@@ -45,7 +48,7 @@ def test_decorator(make_gen):
     assert isinstance(gen, Generator)
     assert isinstance(gen, SizedGenerator)
     assert isinstance(gen, Sized)
-    assert hasattr(gen, '__len__')
+    assert hasattr(gen, "__len__")
     assert len(gen) == 25
     for i, v in enumerate(gen):
         assert v == i
@@ -62,6 +65,7 @@ def test_decorator(make_gen):
 def test_decorator_ex(make_gen):
     # Check invalid decorator use
     with pytest.raises(TypeError):
+
         @sized_generator(length=1)
         def _make_gen():
             return 1
@@ -107,7 +111,7 @@ def test_fixed_gen_tqdm(capsys):
         counter += 1
     assert counter == 128
     captured = capsys.readouterr()
-    assert '128/128' in captured.err
+    assert "128/128" in captured.err
 
 
 def test_show():

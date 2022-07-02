@@ -17,7 +17,9 @@ def process_ffmpeg(task: Task) -> (int, Task):
     stream = ffmpeg.output(stream, task.file_output, ac=1, ar=task.config.sample_rate)
     out, err = None, None
     try:
-        out, err = ffmpeg.run(stream, capture_stdout=True, capture_stderr=True, overwrite_output=True)
+        out, err = ffmpeg.run(
+            stream, capture_stdout=True, capture_stderr=True, overwrite_output=True
+        )
     except ffmpeg.Error as e:
         logging.error(f"Error running ffmpeg: {err}")
         return 1, task

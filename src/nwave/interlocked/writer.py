@@ -11,9 +11,7 @@ class Writer:
         self.file = file
         self.overwrite = overwrite
         self.temp = tempfile.NamedTemporaryFile(
-            delete=False,
-            dir=os.path.dirname(self.file),
-            mode='w+b'
+            delete=False, dir=os.path.dirname(self.file), mode="w+b"
         )
 
     def __enter__(self):
