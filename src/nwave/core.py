@@ -29,8 +29,7 @@ class WaveCore:
 
     def __enter__(self):
         self._executor = ThreadPoolExecutor(
-            max_workers=self.threads,
-            thread_name_prefix='WaveCore'
+            max_workers=self.threads, thread_name_prefix="WaveCore"
         )
         return self
 
@@ -40,10 +39,10 @@ class WaveCore:
 
     @property
     def n_tasks(self):
-        """ Number of tasks in queue """
+        """Number of tasks in queue"""
         return len(self._task_queue)
 
-    def schedule(self, batch: 'Batch'):
+    def schedule(self, batch: "Batch"):
         """
         Submit a batch of tasks to the scheduler.
 
@@ -65,6 +64,7 @@ class WaveCore:
         Returns:
             Sized Iterator of TaskResult
         """
+
         @sized_generator(len(self._task_queue))
         def gen():
             if timeout is not None:
@@ -88,6 +88,7 @@ class WaveCore:
                 for ft, task in self._task_queue:
                     ft.cancel()
                 self._task_queue.clear()
+
         return gen()
 
     def wait_all(self, timeout: float = None) -> list[TaskResult]:
