@@ -1,4 +1,5 @@
 import time
+import typing as ty
 from concurrent.futures import ThreadPoolExecutor, Future
 
 import os
@@ -53,7 +54,7 @@ class WaveCore:
             [(self._executor.submit(process, task), task) for task in batch.tasks]
         )
 
-    def yield_all(self, timeout: float = None) -> SizedGenerator[TaskResult]:
+    def yield_all(self, timeout: float = None) -> ty.Generator[TaskResult]:
         """
         Wait for all tasks to finish, process results as they come in.
 
