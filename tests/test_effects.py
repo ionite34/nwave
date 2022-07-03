@@ -160,13 +160,3 @@ def test_wrapper_exceptions(wav):
         effect = fx.Wrapper(target, data_arg="x_1")
         effect.apply_trace(wav[0], wav[1])
     assert "got float" in str(exc_info.value)
-
-
-# Pitch Shift
-def test_pitch(wav):
-    # Load data
-    data, sr = wav
-    # Test for Pitch class
-    effect = fx.Pitch(1.1)
-    out_data, out_sr = effect.apply_trace(data, sr)
-    assert out_sr == sr  # Should be the same

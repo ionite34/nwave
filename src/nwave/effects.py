@@ -8,7 +8,6 @@ import numpy as np
 from .base import BaseEffect
 
 import soxr
-import librosa
 
 __all__ = ["Wrapper", "Resample", "PadSilence", "Pitch"]
 
@@ -138,21 +137,3 @@ class PadSilence(BaseEffect):
         end_samples = np.zeros(pad_e, dtype=np.float32)
         # Concatenate arrays and return
         return np.concatenate((start_samples, data, end_samples), dtype=np.float32), sr
-
-
-class Pitch(BaseEffect):
-    def __init__(self, semitones: float):
-        """
-        Changes the pitch of the audio.
-
-        Args:
-            semitones: Pitch change in semitones.
-        """
-        super().__init__()
-        self.semitones = semitones
-
-    def apply(self, data: np.ndarray, sr: float) -> tuple[np.ndarray, float]:
-        """
-        Changes the pitch of the audio.
-        """
-        return librosa.effects.pitch_shift(data, sr, self.semitones), sr
