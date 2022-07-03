@@ -98,7 +98,7 @@ def test_fixed_gen_tqdm(capsys):
     # Create a generator and wrap it with FixedGenerator
     gen = (i for i in range(128))
     # Use list as LengthLike source
-    f_gen = SizedGenerator(gen, [i for i in range(128)])
+    f_gen = SizedGenerator(gen, list(range(128)))
     assert len(f_gen) == 128
 
     # Check that it works with tqdm
