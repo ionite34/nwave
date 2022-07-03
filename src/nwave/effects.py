@@ -9,7 +9,7 @@ from .base import BaseEffect
 
 import soxr
 
-__all__ = ["Wrapper", "Resample", "PadSilence", "Pitch"]
+__all__ = ["Wrapper", "Resample", "PadSilence"]
 
 
 class Wrapper(BaseEffect):
