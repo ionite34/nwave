@@ -163,7 +163,7 @@ def test_wrapper_exceptions(wav):
 
 
 # Pitch Shift
-def t_pitch(wav):
+def test_pitch(wav):
     # Load data
     data, sr = wav
     # Test for Pitch class
