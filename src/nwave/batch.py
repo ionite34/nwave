@@ -1,4 +1,4 @@
-# Audio Processing Batch
+from __future__ import annotations
 import os
 from collections.abc import Generator
 from glob import glob
@@ -12,8 +12,10 @@ class Batch:
     """
     A batch of audio files to process.
     """
-    def __init__(self, input_files: list[str], output_files: list[str],
-                 overwrite: bool = False):
+
+    def __init__(
+        self, input_files: list[str], output_files: list[str], overwrite: bool = False
+    ):
         """
         Initialize a new batch.
 
@@ -24,7 +26,10 @@ class Batch:
         """
         self.overwrite = overwrite
         self.effects: list[BaseEffect] = []
-        self.tasks = [Task(src, dst, self.effects, self.overwrite) for src, dst in zip(input_files, output_files)]
+        self.tasks = [
+            Task(src, dst, self.effects, self.overwrite)
+            for src, dst in zip(input_files, output_files)
+        ]
 
     def run(self) -> list[TaskResult]:
         """
@@ -64,4 +69,8 @@ class Batch:
         files = glob(pattern)
         if not files:
             raise ValueError(f"No files found for pattern {pattern}")
-        return cls(files, [os.path.join(dest_dir, os.path.basename(f)) for f in files], overwrite)
+        return cls(
+            files,
+            [os.path.join(dest_dir, os.path.basename(f)) for f in files],
+            overwrite,
+        )

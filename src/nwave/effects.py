@@ -9,13 +9,18 @@ from .base import BaseEffect
 
 import soxr
 
-__all__ = ['Resample', 'PadSilence']
+__all__ = ["Wrapper", "Resample", "PadSilence"]
 
 
 class Wrapper(BaseEffect):
-    def __init__(self, function: Callable,
-                 data_arg: str | None = None, sr_arg: str | None = None,
-                 output_sr_override: float | None = None, **kwargs):
+    def __init__(
+        self,
+        function: Callable,
+        data_arg: str | None = None,
+        sr_arg: str | None = None,
+        output_sr_override: float | None = None,
+        **kwargs,
+    ):
         """
         Wrapper for any Callable as an Audio Effect. The function
         must return a NDArray or a 2 length tuple containing a NDArray
@@ -33,7 +38,7 @@ class Wrapper(BaseEffect):
         super().__init__()
         # Check if callable
         if not callable(function):
-            raise TypeError(f'Expected Callable, got {type(function)}')
+            raise TypeError(f"Expected Callable, got {type(function)}")
         self._function = function
         self._kwargs = kwargs  # Store kwargs to pass to function
         self._data_arg = data_arg
@@ -61,17 +66,23 @@ class Wrapper(BaseEffect):
                 return result, sr
         # For 2 length tuple, return the correct ordered result
         elif isinstance(result, tuple) and len(result) == 2:
-            if isinstance(result[0], np.ndarray) and isinstance(result[1], numbers.Real):
+            if isinstance(result[0], np.ndarray) and isinstance(
+                result[1], numbers.Real
+            ):
                 return result[0], result[1]
-            elif isinstance(result[1], np.ndarray) and isinstance(result[0], numbers.Real):
+            elif isinstance(result[1], np.ndarray) and isinstance(
+                result[0], numbers.Real
+            ):
                 return result[1], result[0]
         # Otherwise raise an error
-        raise TypeError('Function expected to return NDArray '
-                        f'or tuple containing [NDArray, float], got {type(result).__name__}')
+        raise TypeError(
+            "Function expected to return NDArray "
+            f"or tuple containing [NDArray, float], got {type(result).__name__}"
+        )
 
 
 class Resample(BaseEffect):
-    def __init__(self, sample_rate: int, quality: str = 'HQ'):
+    def __init__(self, sample_rate: int, quality: str = "HQ"):
         """
         Resamples the audio to a new sample rate.
 
@@ -82,16 +93,21 @@ class Resample(BaseEffect):
         super().__init__()
         self.sample_rate = sample_rate
         self.quality = quality
-        self.qualities = {'QQ', 'LQ', 'MQ', 'HQ', 'VHQ'}
+        self.qualities = {"QQ", "LQ", "MQ", "HQ", "VHQ"}
         if not isinstance(self.sample_rate, numbers.Real) or self.sample_rate <= 0:
             raise ValueError("Sample rate must be a positive real number.")
         if self.quality not in self.qualities:
-            raise ValueError(f'Invalid quality: {self.quality}. Must be one of {self.qualities}')
+            raise ValueError(
+                f"Invalid quality: {self.quality}. Must be one of {self.qualities}"
+            )
 
     def apply(self, data, sr) -> tuple[NDArray, float]:
         if sr == self.sample_rate:
             return data, sr  # Skip processing if already at target sample rate
-        return soxr.resample(data, in_rate=sr, out_rate=self.sample_rate), self.sample_rate
+        return (
+            soxr.resample(data, in_rate=sr, out_rate=self.sample_rate),
+            self.sample_rate,
+        )
 
 
 class PadSilence(BaseEffect):
@@ -104,7 +120,7 @@ class PadSilence(BaseEffect):
             end: Padding to add to the end of the audio in seconds.
         """
         if start < 0 or end < 0:
-            raise ValueError('Padding must be positive.')
+            raise ValueError("Padding must be positive.")
         super().__init__()
         self.start = start
         self.end = end
@@ -121,22 +137,3 @@ class PadSilence(BaseEffect):
         end_samples = np.zeros(pad_e, dtype=np.float32)
         # Concatenate arrays and return
         return np.concatenate((start_samples, data, end_samples), dtype=np.float32), sr
-
-
-class Pitch(BaseEffect):
-    def __init__(self, semitones: float):
-        """
-        Changes the pitch of the audio.
-
-        Args:
-            semitones: Pitch change in semitones.
-        """
-        super().__init__()
-        self.semitones = semitones
-
-    def apply(self, data: np.ndarray, sr: float) -> tuple[np.ndarray, float]:
-        """
-        Changes the pitch of the audio.
-        """
-        import librosa
-        return librosa.effects.pitch_shift(data, sr, self.semitones), sr
