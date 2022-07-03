@@ -1,3 +1,4 @@
+from __future__ import annotations
 import time
 import typing as ty
 from concurrent.futures import ThreadPoolExecutor, Future
@@ -7,7 +8,7 @@ from collections import deque
 
 from .scheduler import Task, TaskResult
 from .audio import process
-from .common.iter import sized_generator, SizedGenerator
+from .common.iter import sized_generator
 
 
 class WaveCore:

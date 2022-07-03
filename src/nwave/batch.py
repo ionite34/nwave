@@ -1,4 +1,4 @@
-# Audio Processing Batch
+from __future__ import annotations
 import os
 from collections.abc import Generator
 from glob import glob

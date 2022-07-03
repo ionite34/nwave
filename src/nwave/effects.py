@@ -8,8 +8,9 @@ import numpy as np
 from .base import BaseEffect
 
 import soxr
+import librosa
 
-__all__ = ['Resample', 'PadSilence']
+__all__ = ['Wrapper', 'Resample', 'PadSilence', 'Pitch']
 
 
 class Wrapper(BaseEffect):
@@ -138,5 +139,4 @@ class Pitch(BaseEffect):
         """
         Changes the pitch of the audio.
         """
-        import librosa
         return librosa.effects.pitch_shift(data, sr, self.semitones), sr

@@ -1,4 +1,4 @@
-# Base Audio Processing Effects and Resample Filters
+from __future__ import annotations
 from abc import ABC, abstractmethod
 from numpy.typing import NDArray
 from ..scheduler import TaskException
