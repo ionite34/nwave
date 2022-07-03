@@ -1,3 +1,4 @@
+from __future__ import annotations
 import gzip
 import math
 from importlib.resources import path
