@@ -6,6 +6,9 @@ tests_profile/data/*.ini
 # Project Profiler
 tests_profile/*.pclprof
 
+# tox
+.python-version
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
