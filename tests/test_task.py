@@ -14,7 +14,7 @@ def test_task():
 def test_task_result():
     # Check basic creation of TaskResult
     t = task.Task('src.wav', 'dst.wav', [], True)
-    tr = task.TaskResult(t, True, None)
+    tr = task.TaskResult(t, None)
     assert isinstance(tr, task.TaskResult)
     assert tr.success
     assert tr.error is None
@@ -23,11 +23,11 @@ def test_task_result():
     assert str(tr) == "Task: src.wav -> dst.wav\n[Completed]"
 
     # Check str for canceled task
-    tr = task.TaskResult(t, False, CancelledError())
+    tr = task.TaskResult(t, CancelledError())
     assert str(tr) == "Task: src.wav -> dst.wav\n[Cancelled]"
 
     # Check str for failed task
-    tr = task.TaskResult(t, False, ValueError('test'))
+    tr = task.TaskResult(t, ValueError('test'))
     assert str(tr) == "Task: src.wav -> dst.wav\n[Failed]: test"
 
 

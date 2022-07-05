@@ -11,11 +11,10 @@ if TYPE_CHECKING:  # pragma: no cover
 @dataclass(frozen=True)
 class Task:
     """
-    Holds information for an audio processing task
+    Defines an audio processing task
     """
     file_source: str
     file_output: str
-    # config: FrozenConfig
     effects: list[BaseEffect]
     overwrite: bool = False
 
@@ -23,8 +22,11 @@ class Task:
 @dataclass(frozen=True)
 class TaskResult:
     task: Task
-    success: bool
-    error: Exception | None = None
+    error: BaseException | None = None
+
+    @property
+    def success(self) -> bool:
+        return not self.error
 
     def __str__(self):
         if self.success:

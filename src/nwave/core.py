@@ -1,14 +1,14 @@
 from __future__ import annotations
-import time
-import typing as ty
-from concurrent.futures import ThreadPoolExecutor, Future
 
 import os
+import time
 from collections import deque
+from concurrent.futures import ThreadPoolExecutor, Future
+from typing import Iterator, Literal
 
-from .scheduler import Task, TaskResult
 from .audio import process
 from .common.iter import sized_generator
+from .scheduler import Task, TaskResult
 
 
 class WaveCore:
@@ -43,7 +43,7 @@ class WaveCore:
         """Number of tasks in queue"""
         return len(self._task_queue)
 
-    def schedule(self, batch: "Batch"):
+    def schedule(self, batch):
         """
         Submit a batch of tasks to the scheduler.
 
@@ -54,13 +54,15 @@ class WaveCore:
             [(self._executor.submit(process, task), task) for task in batch.tasks]
         )
 
-    def yield_all(self, timeout: float = None) -> ty.Iterator[TaskResult]:
+    def yield_all(self, timeout: float | None = None,
+                  timeout_mode: Literal['total', 'per_task'] = 'total') -> Iterator[TaskResult]:
         """
         Wait for all tasks to finish, process results as they come in.
 
         Args:
             timeout: Timeout in seconds before cancelling task.
-            Set to 0 to cancel all in-progress tasks.
+                Set to 0 to cancel all in-progress tasks.
+            timeout_mode: How to handle timeout.
 
         Returns:
             Sized Iterator of TaskResult
@@ -68,22 +70,23 @@ class WaveCore:
 
         @sized_generator(len(self._task_queue))
         def gen():
-            if timeout is not None:
-                end_time = timeout + time.monotonic()
+            end_time = (timeout or 0) + time.monotonic()
 
             try:
                 while self._task_queue:
-                    ft, task = self._task_queue.pop()
+                    ft: Future
+                    task: Task
+                    ft, task = self._task_queue.popleft()
 
-                    if timeout is None:
-                        task_exception = ft.exception()
-                    else:
+                    if timeout is not None and timeout_mode == 'total':
                         task_exception = ft.exception(end_time - time.monotonic())
+                    else:
+                        task_exception = ft.exception(timeout)
 
                     if task_exception is None:
-                        yield TaskResult(task, True, None)
+                        yield TaskResult(task, None)
                     else:
-                        yield TaskResult(task, False, task_exception)
+                        yield TaskResult(task, task_exception)
             finally:
                 # Cancel all remaining tasks
                 for ft, task in self._task_queue:
