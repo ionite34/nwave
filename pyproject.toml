@@ -1,10 +1,21 @@
 [tool.poetry]
 name = "nwave"
 version = "0.1.0"
-description = ""
+description = "Multithread batch resampling and waveform transforms"
 authors = ["ionite34 <dev@ionite.io>"]
+
 license = "MIT"
 readme = "README.md"
+repository = "https://github.com/ionite34/nwave"
+
+keywords = ["audio", "resampling", "wav", "wave", "sound"]
+
+classifiers = [
+    "Topic :: Utilities",
+    "Topic :: Multimedia :: Sound/Audio",
+    "Topic :: Multimedia :: Sound/Audio :: Analysis",
+    "Topic :: Multimedia :: Sound/Audio :: Conversion"
+]
 
 [tool.poetry.dependencies]
 python = ">3.7, <3.11"
