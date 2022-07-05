@@ -15,7 +15,9 @@ class Length:
         elif isinstance(length_like, Sized):
             self._call = length_like.__len__
         else:
-            raise TypeError(f'Length must be an int or a Sized object, not {type(length_like)}')
+            raise TypeError(
+                f"Length must be an int or a Sized object, not {type(length_like)}"
+            )
 
     @property
     def value(self) -> int:
@@ -42,7 +44,9 @@ class SizedGenerator(Generator):
 
     def send(self, *args, **kwargs):
         if self._index > self._length.value:
-            self.throw(IndexError(f"Iteration out of range: {self._index}/{self._length}"))
+            self.throw(
+                IndexError(f"Iteration out of range: {self._index}/{self._length}")
+            )
         self._index += 1
         return self._gen.send(*args, **kwargs)
 

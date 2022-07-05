@@ -54,8 +54,11 @@ class WaveCore:
             [(self._executor.submit(process, task), task) for task in batch.tasks]
         )
 
-    def yield_all(self, timeout: float | None = None,
-                  timeout_mode: Literal['total', 'per_task'] = 'total') -> Iterator[TaskResult]:
+    def yield_all(
+        self,
+        timeout: float | None = None,
+        timeout_mode: Literal["total", "per_task"] = "total",
+    ) -> Iterator[TaskResult]:
         """
         Wait for all tasks to finish, process results as they come in.
 
@@ -78,7 +81,7 @@ class WaveCore:
                     task: Task
                     ft, task = self._task_queue.popleft()
 
-                    if timeout is not None and timeout_mode == 'total':
+                    if timeout is not None and timeout_mode == "total":
                         task_exception = ft.exception(end_time - time.monotonic())
                     else:
                         task_exception = ft.exception(timeout)

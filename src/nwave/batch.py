@@ -18,7 +18,7 @@ class Batch:
         self,
         input_files: Iterable[str | os.PathLike],
         output_files: Iterable[str | os.PathLike],
-        overwrite: bool = False
+        overwrite: bool = False,
     ):
         """
         Initialize a new batch.
