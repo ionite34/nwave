@@ -11,11 +11,11 @@ if TYPE_CHECKING:  # pragma: no cover
 @dataclass(frozen=True)
 class Task:
     """
-    Holds information for an audio processing task
+    Defines an audio processing task
     """
+
     file_source: str
     file_output: str
-    # config: FrozenConfig
     effects: list[BaseEffect]
     overwrite: bool = False
 
@@ -23,23 +23,30 @@ class Task:
 @dataclass(frozen=True)
 class TaskResult:
     task: Task
-    success: bool
-    error: Exception | None = None
+    error: BaseException | None = None
+
+    @property
+    def success(self) -> bool:
+        return not self.error
 
     def __str__(self):
         if self.success:
-            status = 'Completed'
+            status = "Completed"
         elif isinstance(self.error, CancelledError):
-            status = 'Cancelled'
+            status = "Cancelled"
         else:
-            status = 'Failed'
+            status = "Failed"
 
-        if status == 'Failed':
-            return (f"Task: {self.task.file_source} -> {self.task.file_output}\n"
-                    f"[{status}]: {self.error}")
+        if status == "Failed":
+            return (
+                f"Task: {self.task.file_source} -> {self.task.file_output}\n"
+                f"[{status}]: {self.error}"
+            )
         else:
-            return (f"Task: {self.task.file_source} -> {self.task.file_output}\n"
-                    f"[{status}]")
+            return (
+                f"Task: {self.task.file_source} -> {self.task.file_output}\n"
+                f"[{status}]"
+            )
 
 
 class TaskException(Exception):

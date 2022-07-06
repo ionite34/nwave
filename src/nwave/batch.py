@@ -1,7 +1,8 @@
 from __future__ import annotations
+
 import os
-from collections.abc import Generator
 from glob import glob
+from typing import Iterable, Iterator
 
 from .base import BaseEffect
 from .core import WaveCore
@@ -14,7 +15,10 @@ class Batch:
     """
 
     def __init__(
-        self, input_files: list[str], output_files: list[str], overwrite: bool = False
+        self,
+        input_files: Iterable[str | os.PathLike],
+        output_files: Iterable[str | os.PathLike],
+        overwrite: bool = False,
     ):
         """
         Initialize a new batch.
@@ -42,7 +46,7 @@ class Batch:
             core.schedule(self)
             return core.wait_all()
 
-    def run_yield(self) -> Generator[TaskResult]:
+    def run_yield(self) -> Iterator[TaskResult]:
         """
         Run the batch and yield results.
 
