@@ -4,7 +4,7 @@ import os
 import time
 from collections import deque
 from concurrent.futures import ThreadPoolExecutor, Future
-from typing import Iterator, Literal
+from typing import Iterator
 
 from .audio import process
 from .common.iter import sized_generator
@@ -57,7 +57,7 @@ class WaveCore:
     def yield_all(
         self,
         timeout: float | None = None,
-        timeout_mode: Literal["total", "per_task"] = "total",
+        per_task_timeout: bool = False,
     ) -> Iterator[TaskResult]:
         """
         Wait for all tasks to finish, process results as they come in.
@@ -65,7 +65,7 @@ class WaveCore:
         Args:
             timeout: Timeout in seconds before cancelling task.
                 Set to 0 to cancel all in-progress tasks.
-            timeout_mode: How to handle timeout.
+            per_task_timeout: True to apply timeout to each task, False to apply to entire batch.
 
         Returns:
             Sized Iterator of TaskResult
@@ -81,7 +81,7 @@ class WaveCore:
                     task: Task
                     ft, task = self._task_queue.popleft()
 
-                    if timeout is not None and timeout_mode == "total":
+                    if timeout is not None and not per_task_timeout:
                         task_exception = ft.exception(end_time - time.monotonic())
                     else:
                         task_exception = ft.exception(timeout)
