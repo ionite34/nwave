@@ -51,3 +51,10 @@ jobs:
         fail_ci_if_error: true
         flags: unittests
         verbose: true
+
+    - name: Upload Coverage to DeepSource
+      uses: deepsourcelabs/test-coverage-action@master
+      with:
+        key: python
+        coverage-file: coverage.xml
+        dsn: ${{ secrets.DEEPSOURCE_DSN }}
