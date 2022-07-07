@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import gzip
 import math
 from importlib.resources import path
@@ -15,10 +16,9 @@ from . import data as test_data
 # Fixture to load an example audio and return (array, sample rate)
 @pytest.fixture(scope="module")
 def wav():
-    with path(test_data, "sample.wav.gz") as p:
-        with gzip.open(p, "rb") as f:
-            sr, arr = wavfile.read(f)
-            return arr, sr
+    with path(test_data, "sample.wav.gz") as p, gzip.open(p, "rb") as f:
+        sr, arr = wavfile.read(f)
+        return arr, sr
 
 
 @pytest.mark.parametrize(
