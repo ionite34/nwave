@@ -1,0 +1,52 @@
+name: License Scan
+
+on: [workflow_call]
+
+jobs:
+  run:
+    name: License Scan
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10"]
+        poetry-version: ["1.1.13"]
+        os: [ubuntu-latest]
+        include:
+          - os: ubuntu-latest
+            poetry-cache: ~/.cache/pypoetry
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Cache Poetry
+      uses: actions/cache@v2
+      with:
+        path: ~/.cache/pypoetry
+        key: poetry-cache-${{ matrix.os }}-${{ matrix.poetry-cache }}-${{ matrix.python-version }}-${{ matrix.poetry-version }}
+
+    - name: Setup Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Run Poetry image
+      uses: abatilo/actions-poetry@v2.0.0
+      with:
+        poetry-version: ${{ matrix.poetry-version }}
+
+    - name: Install requirements
+      run: |
+        poetry install
+
+    - name: "FOSSA License Scan"
+      uses: fossas/fossa-action@main
+      with:
+        api-key: ${{secrets.FOSSA_API}}
+
+    - name: "FOSSA License Test"
+      uses: fossas/fossa-action@main
+      with:
+        api-key: ${{secrets.FOSSA_API}}
+        run-tests: true
