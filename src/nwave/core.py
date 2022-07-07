@@ -4,11 +4,14 @@ import os
 import time
 from collections import deque
 from concurrent.futures import ThreadPoolExecutor, Future
-from typing import Iterator
+from typing import Iterator, TYPE_CHECKING
 
 from .audio import process
 from .common.iter import sized_generator
 from .scheduler import Task, TaskResult
+
+if TYPE_CHECKING:
+    from .batch import Batch
 
 
 class WaveCore:
@@ -39,11 +42,11 @@ class WaveCore:
         return False
 
     @property
-    def n_tasks(self):
+    def n_tasks(self) -> int:
         """Number of tasks in queue"""
         return len(self._task_queue)
 
-    def schedule(self, batch):
+    def schedule(self, batch: Batch):
         """
         Submit a batch of tasks to the scheduler.
 
