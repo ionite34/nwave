@@ -40,13 +40,13 @@ jobs:
       run: |
         poetry install
 
-    - name: "FOSSA License Scan"
+    - name: FOSSA License Scan
       uses: fossas/fossa-action@main
       with:
-        api-key: ${{secrets.FOSSA_API}}
+        api-key: ${{ secrets.FOSSA_API }}
 
-    - name: "FOSSA License Test"
+    - name: FOSSA License Test
       uses: fossas/fossa-action@main
       with:
-        api-key: ${{secrets.FOSSA_API}}
+        api-key: ${{ secrets.FOSSA_API }}
         run-tests: true
