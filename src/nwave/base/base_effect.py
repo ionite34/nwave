@@ -1,19 +1,21 @@
 from __future__ import annotations
+
 from abc import ABC, abstractmethod
+
 from numpy.typing import NDArray
-from ..scheduler import TaskException
+
+from ..task import TaskException
 
 
 class BaseEffect(ABC):
     """
-    Protected Base Effect
+    Abstract Base Class for Effects
     """
 
     @property
     def name(self):
         return self.__class__.__name__
 
-    # Main method to apply effect, takes and returns a numpy ndarray.
     @abstractmethod
     def apply(self, data: NDArray, sr: float) -> tuple[NDArray, float]:
         """
@@ -27,8 +29,6 @@ class BaseEffect(ABC):
         """
         ...  # pragma: no cover
 
-    # Wrapper to run apply with exception tracing
-    # Do not override this method in subclasses !
     def apply_trace(self, data: NDArray, sr: float) -> tuple[NDArray, float]:
         """
         Apply the audio effect with exception tracing

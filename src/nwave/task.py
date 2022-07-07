@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover
-    from ..base import BaseEffect
+    from nwave.base import BaseEffect
 
 
 @dataclass(frozen=True)

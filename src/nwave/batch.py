@@ -6,7 +6,7 @@ from typing import Iterable, Iterator
 
 from .base import BaseEffect
 from .core import WaveCore
-from .scheduler import Task, TaskResult
+from .task import Task, TaskResult
 
 
 class Batch:
@@ -35,25 +35,31 @@ class Batch:
             for src, dst in zip(input_files, output_files)
         ]
 
-    def run(self) -> list[TaskResult]:
+    def run(self, threads: int | None = None) -> list[TaskResult]:
         """
         Run the batch.
+
+        Args:
+            threads: Number of threads to use.
 
         Returns:
             A list of TaskResults.
         """
-        with WaveCore() as core:
+        with WaveCore(threads) as core:
             core.schedule(self)
             return core.wait_all()
 
-    def run_yield(self) -> Iterator[TaskResult]:
+    def run_yield(self, threads: int | None = None) -> Iterator[TaskResult]:
         """
         Run the batch and yield results.
+
+        Args:
+            threads: Number of threads to use.
 
         Returns:
             A generator of TaskResults.
         """
-        with WaveCore() as core:
+        with WaveCore(threads) as core:
             core.schedule(self)
             yield from core.yield_all()
 

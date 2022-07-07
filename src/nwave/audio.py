@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from scipy.io import wavfile
 
-from .scheduler import Task, TaskException
 from . import interlocked
+from .task import Task, TaskException
 
 
 def process(task: Task):
@@ -12,7 +12,6 @@ def process(task: Task):
     """
     # Load
     try:
-        # data, sr = librosa.load(task.file_source, sr=None)
         sr, data = wavfile.read(task.file_source)
     except Exception as e:
         raise TaskException(e, 'File Loading')

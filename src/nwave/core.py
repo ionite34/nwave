@@ -8,7 +8,7 @@ from typing import Iterator, TYPE_CHECKING
 
 from .audio import process
 from .common.iter import sized_generator
-from .scheduler import Task, TaskResult
+from .task import Task, TaskResult
 
 if TYPE_CHECKING:
     from .batch import Batch

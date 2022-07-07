@@ -2,7 +2,7 @@ from concurrent.futures import CancelledError
 
 import pytest
 
-from nwave.scheduler import task
+from nwave import task
 
 
 def test_task():
