@@ -63,7 +63,7 @@ class WaveCore:
         per_task_timeout: bool = False,
     ) -> Iterator[TaskResult]:
         """
-        Wait for all tasks to finish, process results as they come in.
+        Iterator for all scheduled tasks
 
         Args:
             timeout: Timeout in seconds before cancelling task.
