@@ -7,13 +7,10 @@ from nwave import effects, Batch, Task, TaskResult, TaskException, WaveCore
 
 def test_batch():
     # Create a batch
-    batch = Batch(['file1.wav'], ['file1_out.wav'])
+    batch = Batch(["file1.wav"], ["file1_out.wav"])
     assert batch.overwrite is False
     # Add Effects
-    batch.apply(
-        effects.Resample(44100),
-        effects.PadSilence(0.5, 0.5)
-    )
+    batch.apply(effects.Resample(44100), effects.PadSilence(0.5, 0.5))
     # Unpack
     for task in batch.tasks:
         assert isinstance(task, Task)
@@ -40,12 +37,9 @@ def test_batch_run_yield(data_dir):
 
 def test_run():
     # Create a batch
-    batch = Batch(['file1.wav'], ['file1_out.wav'])
+    batch = Batch(["file1.wav"], ["file1_out.wav"])
     # Add Effects
-    batch.apply(
-        effects.Resample(44100),
-        effects.PadSilence(0.5, 0.5)
-    )
+    batch.apply(effects.Resample(44100), effects.PadSilence(0.5, 0.5))
     # Run
     results = batch.run()
     for result in results:

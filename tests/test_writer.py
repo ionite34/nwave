@@ -25,7 +25,7 @@ def test_writer_exceptions():
             with Writer(tmpdir) as f:
                 f.write(b"test")
         # File exists error
-        open(join(tmpdir, "exists.res"), 'w').write("test")
+        open(join(tmpdir, "exists.res"), "w").write("test")
         assert exists(join(tmpdir, "exists.res"))
         with pytest.raises(FileExistsError):
             with Writer(join(tmpdir, "exists.res")) as f:
@@ -40,9 +40,9 @@ def test_writer_exceptions():
 def test_writer_cleanup():
     with TemporaryDirectory() as tmpdir:
         # Patch os.rename to raise an error
-        with patch('os.rename', side_effect=OSError):
+        with patch("os.rename", side_effect=OSError):
             with pytest.raises(OSError):
-                with Writer(join(tmpdir, 'test.res')) as f:
+                with Writer(join(tmpdir, "test.res")) as f:
                     f.write(b"test")
         # Check that the temp file was deleted
         assert len(listdir(tmpdir)) == 0
