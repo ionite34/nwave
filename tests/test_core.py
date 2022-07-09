@@ -4,8 +4,8 @@ from unittest.mock import patch
 
 import pytest
 
-from nwave import __version__
 from nwave import WaveCore, Batch, effects
+from nwave import __version__
 
 
 def test_version():
