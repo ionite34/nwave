@@ -1,12 +1,12 @@
 # Example Audio Data
 import glob
 import os
-from typing import Generator
+from typing import Iterator
 
 DATA_PATH = os.path.dirname(os.path.realpath(__file__))
 
 
-def enum(num_files: int) -> Generator[(str, str)]:
+def enum(num_files: int) -> Iterator:
     """
     Enumerates the files in the input directory
     """

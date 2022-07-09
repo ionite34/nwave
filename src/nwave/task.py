@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover
-    from ..base import BaseEffect
+    from nwave.base import BaseEffect
 
 
 @dataclass(frozen=True)
@@ -31,22 +31,13 @@ class TaskResult:
 
     def __str__(self):
         if self.success:
-            status = "Completed"
+            status = "[Completed]"
         elif isinstance(self.error, CancelledError):
-            status = "Cancelled"
+            status = "[Cancelled]"
         else:
-            status = "Failed"
+            status = f"[Failed]: {self.error}"
 
-        if status == "Failed":
-            return (
-                f"Task: {self.task.file_source} -> {self.task.file_output}\n"
-                f"[{status}]: {self.error}"
-            )
-        else:
-            return (
-                f"Task: {self.task.file_source} -> {self.task.file_output}\n"
-                f"[{status}]"
-            )
+        return f"Task: {self.task.file_source} -> {self.task.file_output}\n" f"{status}"
 
 
 class TaskException(Exception):
@@ -58,6 +49,7 @@ class TaskException(Exception):
             exception: The exception that was raised.
             during: The name of the function that raised the exception.
         """
+        super().__init__(exception)
         self.inner_exception = exception
         self.inner_type = exception.__class__.__name__
         self.raising_source = during
