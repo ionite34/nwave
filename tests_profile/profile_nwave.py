@@ -71,11 +71,12 @@ def pa_single(n_files: int, fx, threads: int, batch_num: int):
 def pa_joblib(n_files: int, fx, threads: int, batch_num: int):
     total = data.enum_batch(n_files, batch_num)
     with Time(verbose=True):
-        with Parallel(n_jobs=threads, backend='threading') as thread_pool:
+        with Parallel(n_jobs=threads, backend="threading") as thread_pool:
             for batch in total:
-                thread_pool(delayed(audio.process)(
-                    Task(in_f, out_f, fx, overwrite=True)
-                ) for in_f, out_f in batch)
+                thread_pool(
+                    delayed(audio.process)(Task(in_f, out_f, fx, overwrite=True))
+                    for in_f, out_f in batch
+                )
 
 
 def pa_threadpool_submit(n_files: int, fx, threads: int, batch_num: int):
@@ -83,9 +84,12 @@ def pa_threadpool_submit(n_files: int, fx, threads: int, batch_num: int):
     with Time(verbose=True):
         with ThreadPoolExecutor(max_workers=threads) as executor:
             for batch in total:
-                tasks = [executor.submit(
-                    audio.process, Task(in_f, out_f, fx, overwrite=True)
-                ) for in_f, out_f in batch]
+                tasks = [
+                    executor.submit(
+                        audio.process, Task(in_f, out_f, fx, overwrite=True)
+                    )
+                    for in_f, out_f in batch
+                ]
                 for future in tasks:
                     if future.exception() is not None:
                         raise RuntimeError(future.exception())
@@ -131,16 +135,13 @@ def clean_up():
 
 
 def main():
-    fx = [
-        effects.Resample(44100, quality='HQ'),
-        effects.PadSilence(0.5, 0.5)
-    ]
+    fx = [effects.Resample(44100, quality="HQ"), effects.PadSilence(0.5, 0.5)]
 
     # Total operations = n_files * runs
     n_files = 900
     runs = 1
     threads = 20
-    print(f'{n_files} files, {runs} batches')
+    print(f"{n_files} files, {runs} batches")
 
     test_targets = [
         pa_single,
@@ -148,14 +149,14 @@ def main():
         pa_threadpool_submit,
         pa_threadpool_map,
         pa_nwave,
-        pa_nwave_run
+        pa_nwave_run,
     ]
 
     for target in test_targets:
-        print(f'{Fore.BLUE}Testing [{target.__name__}]{Fore.RESET}')
+        print(f"{Fore.BLUE}Testing [{target.__name__}]{Fore.RESET}")
         target(n_files, fx, threads, runs)
         clean_up()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
