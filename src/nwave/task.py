@@ -58,6 +58,7 @@ class TaskException(Exception):
             exception: The exception that was raised.
             during: The name of the function that raised the exception.
         """
+        super().__init__(exception)
         self.inner_exception = exception
         self.inner_type = exception.__class__.__name__
         self.raising_source = during
