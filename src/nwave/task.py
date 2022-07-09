@@ -37,10 +37,7 @@ class TaskResult:
         else:
             status = f"[Failed]: {self.error}"
 
-        return (
-            f"Task: {self.task.file_source} -> {self.task.file_output}\n"
-            f"{status}"
-        )
+        return f"Task: {self.task.file_source} -> {self.task.file_output}\n" f"{status}"
 
 
 class TaskException(Exception):
