@@ -77,8 +77,9 @@ class WaveCore:
             [(self._executor.submit(process, task), task) for task in batch.tasks]
         )
 
-    def yield_all(self, timeout: float | None = None,
-                  per_task_timeout: bool = False) -> Iterator[TaskResult]:
+    def yield_all(
+        self, timeout: float | None = None, per_task_timeout: bool = False
+    ) -> Iterator[TaskResult]:
         """
         Iterator for all scheduled tasks
 
