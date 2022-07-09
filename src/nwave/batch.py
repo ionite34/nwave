@@ -71,7 +71,7 @@ class Batch:
         return self
 
     @classmethod
-    def from_glob(cls, pattern: str, dest_dir: str, overwrite: bool = False):
+    def from_glob(cls, pattern: str, dest_dir: str, overwrite: bool = False) -> Batch:
         """
         Create a new batch from a glob pattern.
         """
