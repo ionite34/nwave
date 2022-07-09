@@ -11,6 +11,7 @@ repository = "https://github.com/ionite34/nwave"
 keywords = ["audio", "resampling", "wav", "wave", "sound"]
 
 classifiers = [
+    "Development Status :: 3 - Alpha",
     "Topic :: Utilities",
     "Topic :: Multimedia :: Sound/Audio",
     "Topic :: Multimedia :: Sound/Audio :: Analysis",
