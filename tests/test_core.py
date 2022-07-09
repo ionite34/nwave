@@ -31,6 +31,11 @@ def test_core(data_dir):
             assert result.error is None
 
 
+def test_core_enter():
+    with WaveCore() as core:
+        assert isinstance(core, WaveCore)
+
+
 def test_core_yield_all(data_dir):
     # Test that yield_all cancels if we don't iterate over all results
     with WaveCore() as core:
