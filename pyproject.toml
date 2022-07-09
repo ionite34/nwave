@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nwave"
-version = "0.1.0"
+version = "0.1.1"
 description = "Multithread batch resampling and waveform transforms"
 authors = ["ionite34 <dev@ionite.io>"]
 
