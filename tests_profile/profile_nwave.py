@@ -3,13 +3,12 @@ from __future__ import annotations
 
 import os
 import time
-from concurrent import futures
 from concurrent.futures import ThreadPoolExecutor
 
+from colorama import Fore
 from joblib import Parallel, delayed
-from tqdm.auto import tqdm
 
-from nwave import Task, effects, audio, WaveCore, Batch
+from nwave import WaveCore, Batch, Task, effects, audio
 from tests_profile import data
 
 
@@ -37,9 +36,9 @@ class Time:
     def delta(self) -> float:
         return self.end - self.start
 
-    @staticmethod
-    def t_format(val: float) -> str:
+    def delta_f(self) -> str:
         # Formats time to μs, ms, or s depending on the value
+        val = self.delta()
         if val >= 1:
             return f"{val:.2f} s"
         elif val >= 1e-3:
@@ -56,85 +55,71 @@ class Time:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.end = time.perf_counter()
         if self.verbose:
-            print(f"Elapsed: {self.t_format(self.delta())}")
+            print(f"Elapsed: {Fore.YELLOW}{self.delta_f()}{Fore.RESET}")
 
 
-def profile_audio(n_files: int, cfg, batch_num: int = 1):
+def pa_single(n_files: int, fx, threads: int, batch_num: int):
     # Get a list of files
     total = data.enum_batch(n_files, batch_num)
     with Time(verbose=True):
-        for batch in tqdm(total):
+        for batch in total:
             for in_f, out_f in batch:
-                task = Task(in_f, out_f, cfg, overwrite=True)
+                task = Task(in_f, out_f, fx, overwrite=True)
                 audio.process(task)
 
 
-def profile_audio_parallel(n_files: int, cfg, threads: int, batch_num: int = 1):
+def pa_joblib(n_files: int, fx, threads: int, batch_num: int):
     total = data.enum_batch(n_files, batch_num)
     with Time(verbose=True):
         with Parallel(n_jobs=threads, backend='threading') as thread_pool:
             for batch in total:
                 thread_pool(delayed(audio.process)(
-                    Task(in_f, out_f, cfg, overwrite=True)
+                    Task(in_f, out_f, fx, overwrite=True)
                 ) for in_f, out_f in batch)
 
 
-def profile_audio_threadpool(n_files: int, cfg, threads: int, batch_num: int = 1):
+def pa_threadpool_submit(n_files: int, fx, threads: int, batch_num: int):
     total = data.enum_batch(n_files, batch_num)
     with Time(verbose=True):
         with ThreadPoolExecutor(max_workers=threads) as executor:
             for batch in total:
-                tasks = {executor.submit(
-                    audio.process, Task(in_f, out_f, cfg, overwrite=True)
-                ): (in_f, out_f) for (in_f, out_f) in batch}
-            # Wait for all tasks to complete
-            for future in tqdm(futures.as_completed(tasks)):
-                if future.done():
-                    pass
-                    # print(future.result())
-                if future.exception():
-                    print(future.exception())
+                tasks = [executor.submit(
+                    audio.process, Task(in_f, out_f, fx, overwrite=True)
+                ) for in_f, out_f in batch]
+                for future in tasks:
+                    if future.exception() is not None:
+                        raise RuntimeError(future.exception())
 
 
-def profile_audio_thread_map(n_files: int, cfg, threads: int, batch_num: int = 1):
+def pa_threadpool_map(n_files: int, fx, threads: int, batch_num: int):
     total = data.enum_batch(n_files, batch_num)
     with Time(verbose=True):
         with ThreadPoolExecutor(max_workers=threads) as thread_pool:
             for batch in total:
-                jobs = [Task(in_f, out_f, cfg, overwrite=True) for in_f, out_f in batch]
+                jobs = [Task(in_f, out_f, fx, overwrite=True) for in_f, out_f in batch]
                 thread_pool.map(audio.process, jobs)
 
 
-def profile_audio_nwave(n_files: int, cfg, threads: int, batch_num: int = 1):
-    with WaveCore(n_threads=threads) as core:
-        for batch in data.enum_batch(n_files, batch_num):
-            for in_f, out_f in batch:
-                task = Task(in_f, out_f, cfg, overwrite=True)
-                core.schedule([task])
-        with Time(verbose=True):
-            core.wait_all()
+def pa_nwave(n_files: int, fx, threads: int, batch_num: int):
+    total = data.enum_batch(n_files, batch_num)
+    with Time(verbose=True):
+        with WaveCore(threads=threads) as core:
+            for batch in total:
+                in_files, out_files = zip(*batch)
+                b = Batch(in_files, out_files, overwrite=True).apply(*fx)
+                core.schedule(b)
 
 
-def profile_audio_nwave_cus(n_files: int, cfg, threads: int, batch_num: int = 1):
-    with WaveCore(n_threads=threads) as core:
-        in_files = []
-        out_files = []
-        for batch in data.enum_batch(n_files, batch_num):
-            for in_f, out_f in batch:
-                in_files.append(in_f)
-                out_files.append(out_f)
-            batch = Batch(in_files, out_files, overwrite=True)
-            batch = batch.apply(
-                effects.Resample(44100, quality='HQ'),
-                effects.PadSilence(0.5, 0.5)
-            ).export()
-        with Time(verbose=True):
-            core.schedule(batch)
-            core.wait_all()
+def pa_nwave_run(n_files: int, fx, threads: int, batch_num: int):
+    total = data.enum_batch(n_files, batch_num)
+    with Time(verbose=True):
+        for batch in total:
+            in_files, out_files = zip(*batch)
+            b = Batch(in_files, out_files, overwrite=True).apply(*fx)
+            b.run(threads)
 
 
 def clean_up():
-    print("Cleaning up")
     # Search all files in directory with 'out' in the name
     count = 0
     for file in os.listdir(data.DATA_PATH):
@@ -142,7 +127,7 @@ def clean_up():
             os.remove(os.path.join(data.DATA_PATH, file))
             count += 1
     if count:
-        print(f"Removed {count} files")
+        print(f"{Fore.LIGHTBLACK_EX}[Clean-up] > Removed {count} files")
 
 
 def main():
@@ -151,53 +136,26 @@ def main():
         effects.PadSilence(0.5, 0.5)
     ]
 
-    n_files = 64
-    runs = 15
+    # Total operations = n_files * runs
+    n_files = 900
+    runs = 1
     threads = 20
     print(f'{n_files} files, {runs} batches')
 
-    print('[Single]')
-    # profile_audio(n_files, fx, batch_num=runs)
-    print('-' * 3)
-    clean_up()
-    time.sleep(1)
+    test_targets = [
+        pa_single,
+        pa_joblib,
+        pa_threadpool_submit,
+        pa_threadpool_map,
+        pa_nwave,
+        pa_nwave_run
+    ]
 
-    print('-' * 5)
-    print(f'[Parallel] {threads} threads')
-    # profile_audio_parallel(n_files, fx, threads, batch_num=runs)
-    print('-' * 3)
-    clean_up()
-    time.sleep(1)
-
-    print('-' * 5)
-    print(f'[Parallel (Threadpool)] {threads} threads')
-    # profile_audio_threadpool(n_files, fx, threads, batch_num=runs)
-    print('-' * 3)
-    clean_up()
-    time.sleep(1)
-
-    print('-' * 5)
-    print(f'[Parallel (Thread Map)] {threads} threads')
-    # profile_audio_thread_map(n_files, fx, threads, batch_num=runs)
-    print('-' * 3)
-    clean_up()
-    time.sleep(1)
-
-    print('-' * 5)
-    print(f'[Parallel (NWave)] {threads} threads')
-    # profile_audio_nwave(n_files, fx, threads, batch_num=runs)
-    print('-' * 3)
-    clean_up()
-    time.sleep(1)
-
-    print('-' * 5)
-    print(f'[Parallel (NWave with Batch)] {threads} threads')
-    profile_audio_nwave_cus(n_files, fx, threads, batch_num=runs)
-    print('-' * 3)
-    clean_up()
-    time.sleep(1)
+    for target in test_targets:
+        print(f'{Fore.BLUE}Testing [{target.__name__}]{Fore.RESET}')
+        target(n_files, fx, threads, runs)
+        clean_up()
 
 
 if __name__ == '__main__':
-    # clean_up()
     main()
