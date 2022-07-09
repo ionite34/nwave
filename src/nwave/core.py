@@ -11,7 +11,7 @@ from .common.iter import sized_generator
 from .task import Task, TaskResult
 
 if TYPE_CHECKING:
-    from .batch import Batch
+    from .batch import Batch  # pragma: no cover
 
 
 class WaveCore:
@@ -25,25 +25,45 @@ class WaveCore:
             exit_wait: Whether to wait for all tasks to finish before exiting context.
         """
         super().__init__()
-        # Set threads to min(32, os.cpu_count() + 4) if not specified
-        # This is default behavior since Python 3.8, but this will standardize behavior
+        # Use new default threads algorithm (default for Py 3.8+)
         self.threads = threads or min(32, (os.cpu_count() or 1) + 4)
         self.exit_wait = exit_wait
         self._task_queue: deque[(Future, Task)] = deque()
 
-    def __enter__(self):
+    def __enter__(self) -> WaveCore:
+        """
+        Enter context manager.
+
+        Returns:
+            WaveCore
+        """
         self._executor = ThreadPoolExecutor(
             max_workers=self.threads, thread_name_prefix="WaveCore"
         )
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
+        """
+        Exit context manager.
+
+        Args:
+            exc_type: Exception type
+            exc_value: Exception value
+            traceback: Traceback
+
+        Returns:
+            None
+        """
         self._executor.shutdown(wait=self.exit_wait)
-        return False
 
     @property
     def n_tasks(self) -> int:
-        """Number of tasks in queue"""
+        """
+        Number of tasks currently in queue
+
+        Returns:
+            Number of tasks currently in queue
+        """
         return len(self._task_queue)
 
     def schedule(self, batch: Batch):
@@ -57,11 +77,8 @@ class WaveCore:
             [(self._executor.submit(process, task), task) for task in batch.tasks]
         )
 
-    def yield_all(
-        self,
-        timeout: float | None = None,
-        per_task_timeout: bool = False,
-    ) -> Iterator[TaskResult]:
+    def yield_all(self, timeout: float | None = None,
+                  per_task_timeout: bool = False) -> Iterator[TaskResult]:
         """
         Iterator for all scheduled tasks
 
