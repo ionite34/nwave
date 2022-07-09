@@ -10,10 +10,6 @@ from .task import Task, TaskResult
 
 
 class Batch:
-    """
-    A batch of audio files to process.
-    """
-
     def __init__(
         self,
         input_files: Iterable[str | os.PathLike],
