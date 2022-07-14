@@ -28,7 +28,7 @@ class WaveCore:
         # Use new default threads algorithm (default for Py 3.8+)
         self.threads = threads or min(32, (os.cpu_count() or 1) + 4)
         self.exit_wait = exit_wait
-        self._task_queue: deque[(Future, Task)] = deque()
+        self._task_queue: deque[tuple[Future, Task]] = deque()
 
     def __enter__(self) -> WaveCore:
         """
@@ -79,7 +79,7 @@ class WaveCore:
 
     def yield_all(
         self, timeout: float | None = None, per_task_timeout: bool = False
-    ) -> Iterator[TaskResult]:
+    ) -> Iterator[TaskResult] | None:
         """
         Iterator for all scheduled tasks
 
@@ -98,14 +98,14 @@ class WaveCore:
 
             try:
                 while self._task_queue:
-                    ft: Future
+                    future: Future
                     task: Task
-                    ft, task = self._task_queue.popleft()
+                    future, task = self._task_queue.popleft()
 
                     if timeout is not None and not per_task_timeout:
-                        task_exception = ft.exception(end_time - time.monotonic())
+                        task_exception = future.exception(end_time - time.monotonic())
                     else:
-                        task_exception = ft.exception(timeout)
+                        task_exception = future.exception(timeout)
 
                     if task_exception is None:
                         yield TaskResult(task, None)
@@ -113,8 +113,8 @@ class WaveCore:
                         yield TaskResult(task, task_exception)
             finally:
                 # Cancel all remaining tasks
-                for ft, task in self._task_queue:
-                    ft.cancel()
+                for future, task in self._task_queue:
+                    future.cancel()
                 self._task_queue.clear()
 
         return gen()
