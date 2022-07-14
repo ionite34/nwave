@@ -19,7 +19,7 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.7, <3.11"
+python = ">=3.7.2,<3.11"
 numba = "^0.55.2"
 SoundFile = "^0.10.3"
 librosa = "^0.9.2"
@@ -29,10 +29,16 @@ soxr = "^0.3.0"
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
 pytest-cov = "^3.0.0"
+mypy = "^0.961"
+pylint = "^2.14.4"
+black = "^22.6.0"
 tox = "^3.25.1"
 yaspin = "^2.1.0"
 tqdm = "^4.64.0"
 colorama = "^0.4.5"
+
+[tool.pylint."MESSAGES CONTROL"]
+disable = "missing-module-docstring"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
