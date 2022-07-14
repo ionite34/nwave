@@ -29,8 +29,8 @@ class CleanUp:
 
 class Time:
     def __init__(self, verbose=False):
-        self.start = None
-        self.end = None
+        self.start = 0
+        self.end = 0
         self.verbose = verbose
 
     def delta(self) -> float:

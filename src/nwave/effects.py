@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import numbers
-from typing import Callable
+from typing import Callable, SupportsFloat
 from numpy.typing import NDArray
 import numpy as np
 
@@ -62,18 +62,17 @@ class Wrapper(BaseEffect):
             # If override is defined, return the override
             if self._output_sr_override is not None:
                 return result, self._output_sr_override
-            else:
-                return result, sr
+            return result, sr
         # For 2 length tuple, return the correct ordered result
         elif isinstance(result, tuple) and len(result) == 2:
             if isinstance(result[0], np.ndarray) and isinstance(
-                result[1], numbers.Real
+                result[1], SupportsFloat
             ):
-                return result[0], result[1]
-            elif isinstance(result[1], np.ndarray) and isinstance(
-                result[0], numbers.Real
+                return result[0], float(result[1])
+            if isinstance(result[1], np.ndarray) and isinstance(
+                result[0], SupportsFloat
             ):
-                return result[1], result[0]
+                return result[1], float(result[0])
         # Otherwise raise an error
         raise TypeError(
             "Function expected to return NDArray "
