@@ -1,10 +1,13 @@
-from typing import Generator
+from __future__ import annotations
+
 from collections.abc import Sized
+from typing import Generator
 
 import pytest
 from tqdm import tqdm
 
-from nwave.common.iter import SizedGenerator, sized_generator
+from nwave.common.iter import sized_generator
+from nwave.common.iter import SizedGenerator
 
 
 @pytest.fixture(scope="function")

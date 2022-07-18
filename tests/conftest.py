@@ -1,7 +1,10 @@
-import os
+from __future__ import annotations
+
 import gzip
+import os
 import tempfile
 from importlib.resources import path
+
 import pytest
 
 from . import data
