@@ -1,15 +1,19 @@
+from __future__ import annotations
+
 import os
 from glob import glob
 from unittest.mock import patch
 
 import pytest
 
-from nwave import WaveCore, Batch, effects
 from nwave import __version__
+from nwave import Batch
+from nwave import effects
+from nwave import WaveCore
 
 
 def test_version():
-    assert __version__ == "0.1.0"
+    assert __version__ == "0.1.2"
 
 
 def test_core(data_dir):
