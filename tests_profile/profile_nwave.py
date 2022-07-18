@@ -1,4 +1,3 @@
-# Performance Profiling Tests
 from __future__ import annotations
 
 import os
@@ -6,9 +5,15 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 
 from colorama import Fore
-from joblib import Parallel, delayed
+from joblib import delayed
+from joblib import Parallel
+from tqdm import tqdm
 
-from nwave import WaveCore, Batch, Task, effects, audio
+from nwave import audio
+from nwave import Batch
+from nwave import effects
+from nwave import Task
+from nwave import WaveCore
 from tests_profile import data
 
 
@@ -110,8 +115,8 @@ def pa_nwave(n_files: int, fx, threads: int, batch_num: int):
         with WaveCore(threads=threads) as core:
             for batch in total:
                 in_files, out_files = zip(*batch)
-                b = Batch(in_files, out_files, overwrite=True).apply(*fx)
-                core.schedule(b)
+                wave_batch = Batch(in_files, out_files, overwrite=True).apply(*fx)
+                core.schedule(wave_batch)
 
 
 def pa_nwave_run(n_files: int, fx, threads: int, batch_num: int):
@@ -119,8 +124,19 @@ def pa_nwave_run(n_files: int, fx, threads: int, batch_num: int):
     with Time(verbose=True):
         for batch in total:
             in_files, out_files = zip(*batch)
-            b = Batch(in_files, out_files, overwrite=True).apply(*fx)
-            b.run(threads)
+            wave_batch = Batch(in_files, out_files, overwrite=True).apply(*fx)
+            wave_batch.run(threads)
+
+
+def pa_nwave_tqdm(n_files: int, fx, threads: int, batch_num: int):
+    total = data.enum_batch(n_files, batch_num)
+    with WaveCore(threads=threads) as core:
+        for batch in total:
+            in_files, out_files = zip(*batch)
+            wave_batch = Batch(in_files, out_files, overwrite=True).apply(*fx)
+            core.schedule(wave_batch)
+            futures = core.yield_all()
+            list(tqdm(futures))
 
 
 def clean_up():
@@ -150,6 +166,7 @@ def main():
         pa_threadpool_map,
         pa_nwave,
         pa_nwave_run,
+        pa_nwave_tqdm,
     ]
 
     for target in test_targets:

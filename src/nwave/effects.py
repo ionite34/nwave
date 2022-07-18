@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import numbers
-from typing import Callable, SupportsFloat
-from numpy.typing import NDArray
+from typing import Callable
+from typing import SupportsFloat
+
 import numpy as np
+import soxr
+from numpy.typing import NDArray
 
 from .base import BaseEffect
-
-import soxr
 
 __all__ = ["Wrapper", "Resample", "PadSilence"]
 
@@ -127,6 +128,13 @@ class PadSilence(BaseEffect):
     def apply(self, data: NDArray, sr: float) -> tuple[NDArray, float]:
         """
         Pads a wave array with silence
+
+        Args:
+            data: Wave array to pad
+            sr: Sample rate of the wave array
+
+        Returns:
+            Tuple of (padded wave array, sample rate)
         """
         # Convert from seconds to samples
         pad_s = int(self.start * sr)
