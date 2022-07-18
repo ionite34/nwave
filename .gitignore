@@ -4,7 +4,7 @@ tests_profile/data/*.zip
 tests_profile/data/*.ini
 
 # Project Profiler
-tests_profile/*.pclprof
+*.pclprof
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
