@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import numbers
 from typing import Callable
-from numpy.typing import NDArray
+
 import numpy as np
+import soxr
+from numpy.typing import NDArray
 
 from .base import BaseEffect
-
-import soxr
 
 __all__ = ["Wrapper", "Resample", "PadSilence"]
 
@@ -62,18 +62,17 @@ class Wrapper(BaseEffect):
             # If override is defined, return the override
             if self._output_sr_override is not None:
                 return result, self._output_sr_override
-            else:
-                return result, sr
+            return result, sr
         # For 2 length tuple, return the correct ordered result
         elif isinstance(result, tuple) and len(result) == 2:
             if isinstance(result[0], np.ndarray) and isinstance(
-                result[1], numbers.Real
+                result[1], (int, float)
             ):
-                return result[0], result[1]
-            elif isinstance(result[1], np.ndarray) and isinstance(
-                result[0], numbers.Real
+                return result[0], float(result[1])
+            if isinstance(result[1], np.ndarray) and isinstance(
+                result[0], (int, float)
             ):
-                return result[1], result[0]
+                return result[1], float(result[0])
         # Otherwise raise an error
         raise TypeError(
             "Function expected to return NDArray "
@@ -128,6 +127,13 @@ class PadSilence(BaseEffect):
     def apply(self, data: NDArray, sr: float) -> tuple[NDArray, float]:
         """
         Pads a wave array with silence
+
+        Args:
+            data: Wave array to pad
+            sr: Sample rate of the wave array
+
+        Returns:
+            Tuple of (padded wave array, sample rate)
         """
         # Convert from seconds to samples
         pad_s = int(self.start * sr)

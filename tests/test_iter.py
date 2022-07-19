@@ -1,10 +1,13 @@
-from typing import Generator
+from __future__ import annotations
+
 from collections.abc import Sized
+from typing import Generator
 
 import pytest
 from tqdm import tqdm
 
-from nwave.common.iter import SizedGenerator, sized_generator
+from nwave.common.iter import sized_generator
+from nwave.common.iter import SizedGenerator
 
 
 @pytest.fixture(scope="function")
@@ -117,3 +120,4 @@ def test_fixed_gen_tqdm(capsys):
 def test_show():
     gen = (i for i in range(128))
     f_gen = SizedGenerator(gen, 128)
+    assert len(f_gen) == 128

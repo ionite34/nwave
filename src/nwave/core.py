@@ -2,15 +2,17 @@ from __future__ import annotations
 
 import os
 import time
+import typing as t
 from collections import deque
-from concurrent.futures import ThreadPoolExecutor, Future
-from typing import Iterator, TYPE_CHECKING
+from concurrent.futures import Future
+from concurrent.futures import ThreadPoolExecutor
 
 from .audio import process
-from .common.iter import sized_generator
-from .task import Task, TaskResult
+from .common.iter import SizedGenerator
+from .task import Task
+from .task import TaskResult
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from .batch import Batch  # pragma: no cover
 
 
@@ -28,7 +30,7 @@ class WaveCore:
         # Use new default threads algorithm (default for Py 3.8+)
         self.threads = threads or min(32, (os.cpu_count() or 1) + 4)
         self.exit_wait = exit_wait
-        self._task_queue: deque[(Future, Task)] = deque()
+        self._task_queue: deque[tuple[Future, Task]] = deque()
 
     def __enter__(self) -> WaveCore:
         """
@@ -50,9 +52,6 @@ class WaveCore:
             exc_type: Exception type
             exc_value: Exception value
             traceback: Traceback
-
-        Returns:
-            None
         """
         self._executor.shutdown(wait=self.exit_wait)
 
@@ -66,7 +65,7 @@ class WaveCore:
         """
         return len(self._task_queue)
 
-    def schedule(self, batch: Batch):
+    def schedule(self, batch: Batch) -> None:
         """
         Submit a batch of tasks to the scheduler.
 
@@ -79,33 +78,33 @@ class WaveCore:
 
     def yield_all(
         self, timeout: float | None = None, per_task_timeout: bool = False
-    ) -> Iterator[TaskResult]:
+    ) -> SizedGenerator:
         """
         Iterator for all scheduled tasks
 
         Args:
             timeout: Timeout in seconds before cancelling task.
                 Set to 0 to cancel all in-progress tasks.
-            per_task_timeout: True to apply timeout to each task, False to apply to entire batch.
+            per_task_timeout: True to apply timeout to each task,
+                False to apply to entire batch.
 
         Returns:
-            Sized Iterator of TaskResult
+            Sized Generator of TaskResult
         """
 
-        @sized_generator(len(self._task_queue))
-        def gen():
+        def gen() -> t.Generator[TaskResult, None, None]:
             end_time = (timeout or 0) + time.monotonic()
 
             try:
                 while self._task_queue:
-                    ft: Future
+                    future: Future
                     task: Task
-                    ft, task = self._task_queue.popleft()
+                    future, task = self._task_queue.popleft()
 
                     if timeout is not None and not per_task_timeout:
-                        task_exception = ft.exception(end_time - time.monotonic())
+                        task_exception = future.exception(end_time - time.monotonic())
                     else:
-                        task_exception = ft.exception(timeout)
+                        task_exception = future.exception(timeout)
 
                     if task_exception is None:
                         yield TaskResult(task, None)
@@ -113,11 +112,11 @@ class WaveCore:
                         yield TaskResult(task, task_exception)
             finally:
                 # Cancel all remaining tasks
-                for ft, task in self._task_queue:
-                    ft.cancel()
+                for future, task in self._task_queue:
+                    future.cancel()
                 self._task_queue.clear()
 
-        return gen()
+        return SizedGenerator(gen(), len(self._task_queue))
 
     def wait_all(self, timeout: float = None) -> list[TaskResult]:
         """

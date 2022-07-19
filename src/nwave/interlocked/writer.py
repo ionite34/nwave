@@ -1,7 +1,8 @@
 from __future__ import annotations
+
 import os
-from os import PathLike
 import tempfile
+from os import PathLike
 
 
 class Writer:
@@ -11,9 +12,7 @@ class Writer:
         self.file = file
         self.overwrite = overwrite
         self.temp = tempfile.NamedTemporaryFile(
-            delete=False,
-            dir=os.path.dirname(self.file),
-            mode='w+b'
+            delete=False, dir=os.path.dirname(self.file), mode="w+b"
         )
 
     def __enter__(self):

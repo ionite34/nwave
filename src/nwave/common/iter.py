@@ -2,13 +2,14 @@ from __future__ import annotations
 
 from collections.abc import Generator
 from functools import wraps
-from typing import Sized, Callable
+from typing import Callable
+from typing import Sized
 
 
 class Length:
     def __init__(self, length_like: int | Sized):
         self._length: int = 0
-        self._call: Callable[[None], int] | None = None
+        self._call: Callable[[], int] | None = None
 
         if isinstance(length_like, int):
             self._length = length_like
@@ -21,6 +22,7 @@ class Length:
 
     @property
     def value(self) -> int:
+        """Returns the length of the object."""
         if self._call is not None:
             return self._call()
         return self._length
@@ -57,7 +59,7 @@ class SizedGenerator(Generator):
         return self._length.value - self._index
 
 
-def sized_generator(length: int | Sized | None = None):
+def sized_generator(length: int | Sized):
     """
     Decorator to make a generator with fixed size.
 

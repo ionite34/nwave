@@ -2,18 +2,60 @@ from __future__ import annotations
 
 import os
 from glob import glob
-from typing import Iterable, Iterator
+from os import PathLike
+from pathlib import Path
+from typing import Iterable
+from typing import Iterator
+from typing import NamedTuple
 
 from .base import BaseEffect
 from .core import WaveCore
-from .task import Task, TaskResult
+from .task import Task
+from .task import TaskResult
+
+
+class Paths(NamedTuple):
+    """Paths for file processing pair."""
+
+    source: Path
+    target: Path
+
+
+def parse_path(
+    input_files: Iterable[str | PathLike] | str | PathLike,
+    output_files: Iterable[str | PathLike] | str | PathLike,
+) -> list[Paths]:
+    """
+    Parses input and output files.
+    If str, assumes directory.
+    If iterable, use files within.
+
+    Args:
+        input_files: Input files.
+        output_files: Output files.
+
+    Returns:
+        List of namedtuple Paths[source, target]
+    """
+    result: list[Paths] = []
+    # If inputs are str, wrap in list
+    if isinstance(input_files, (str, PathLike)):
+        input_files = [input_files]
+    if isinstance(output_files, (str, PathLike)):
+        output_files = [output_files]
+
+    # Convert to Path
+    result = [
+        Paths(Path(src), Path(dst)) for src, dst in zip(input_files, output_files)
+    ]
+    return result
 
 
 class Batch:
     def __init__(
         self,
-        input_files: Iterable[str | os.PathLike],
-        output_files: Iterable[str | os.PathLike],
+        input_files: Iterable[str | PathLike] | str,
+        output_files: Iterable[str | PathLike] | str,
         overwrite: bool = False,
     ):
         """
@@ -26,9 +68,11 @@ class Batch:
         """
         self.overwrite = overwrite
         self.effects: list[BaseEffect] = []
+        # Get list of Path tuples
+        paths = parse_path(input_files, output_files)
+        # Create tasks
         self.tasks = [
-            Task(src, dst, self.effects, self.overwrite)
-            for src, dst in zip(input_files, output_files)
+            Task(src, dst, self.effects, self.overwrite) for src, dst in paths
         ]
 
     def run(self, threads: int | None = None) -> list[TaskResult]:

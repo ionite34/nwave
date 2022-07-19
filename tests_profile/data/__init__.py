@@ -1,4 +1,6 @@
 # Example Audio Data
+from __future__ import annotations
+
 import glob
 import os
 from typing import Iterator
@@ -26,7 +28,7 @@ def enum(num_files: int) -> Iterator:
         yield file, out_f
 
 
-def enum_batch(per_batch: int, batches: int) -> list[list[(str, str)]]:
+def enum_batch(per_batch: int, batches: int) -> list[list[tuple[str, str]]]:
     """
     Enumerates the files in the input directory, splitting into batches
     """
