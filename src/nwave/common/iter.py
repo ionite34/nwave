@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from collections.abc import Generator
 from functools import wraps
-from typing import Sized, Callable
+from typing import Callable
+from typing import Sized
 
 
 class Length:

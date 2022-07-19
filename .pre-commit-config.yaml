@@ -10,17 +10,6 @@ repos:
       - id: check-docstring-first
       - id: debug-statements
 
-  # Import reorder, adds future annotations
-  - repo: https://github.com/asottile/reorder_python_imports
-    rev: v3.8.1
-    hooks:
-      - id: reorder-python-imports
-        args:
-          - "--application-directories=.:src"
-          - "--py37-plus"
-          - "--add-import"
-          - "from __future__ import annotations"
-
   # Upgrade syntax to newer versions
   - repo: https://github.com/asottile/pyupgrade
     rev: v2.37.1

@@ -9,8 +9,8 @@ import soxr
 from scipy.io import wavfile
 
 import nwave.effects as fx
-from nwave import TaskException
 from . import data as test_data
+from nwave import TaskException
 
 
 # Fixture to load an example audio and return (array, sample rate)
