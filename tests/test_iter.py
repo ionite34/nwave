@@ -120,3 +120,4 @@ def test_fixed_gen_tqdm(capsys):
 def test_show():
     gen = (i for i in range(128))
     f_gen = SizedGenerator(gen, 128)
+    assert len(f_gen) == 128
