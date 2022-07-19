@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import numbers
 from typing import Callable
-from typing import SupportsFloat
 
 import numpy as np
 import soxr
@@ -67,11 +66,11 @@ class Wrapper(BaseEffect):
         # For 2 length tuple, return the correct ordered result
         elif isinstance(result, tuple) and len(result) == 2:
             if isinstance(result[0], np.ndarray) and isinstance(
-                result[1], SupportsFloat
+                result[1], (int, float)
             ):
                 return result[0], float(result[1])
             if isinstance(result[1], np.ndarray) and isinstance(
-                result[0], SupportsFloat
+                result[0], (int, float)
             ):
                 return result[1], float(result[0])
         # Otherwise raise an error
