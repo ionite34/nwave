@@ -11,8 +11,8 @@ from nwave import TaskResult
 
 
 def test_batch():
-    # Create a batch
-    batch = Batch(["file1.wav"], ["file1_out.wav"])
+    # Create using string, not list
+    batch = Batch("file1.wav", "file1_out.wav")
     assert batch.overwrite is False
     # Add Effects
     batch.apply(effects.Resample(44100), effects.PadSilence(0.5, 0.5))
