@@ -6,9 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from nwave import audio
-from nwave import Task
-from nwave import TaskException
+from nwave import Task, TaskException, audio
 
 
 def test_process_write_exceptions(data_dir):
