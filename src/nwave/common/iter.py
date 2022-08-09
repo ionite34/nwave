@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Generator
 from functools import wraps
-from typing import Callable
-from typing import Sized
+from typing import Callable, Sized
 
 
 class Length:
@@ -46,8 +45,8 @@ class SizedGenerator(Generator):
 
     def send(self, *args, **kwargs):
         if self._index > self._length.value:
-            self.throw(
-                IndexError(f"Iteration out of range: {self._index}/{self._length}")
+            raise StopIteration(
+                f"Index {self._index} exceeds length {self._length.value}"
             )
         self._index += 1
         return self._gen.send(*args, **kwargs)
