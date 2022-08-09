@@ -5,20 +5,21 @@ import math
 from importlib.resources import path
 
 import pytest
+import soundfile as sf
 import soxr
-from scipy.io import wavfile
 
 import nwave.effects as fx
-from . import data as test_data
 from nwave import TaskException
+
+from . import data as test_data
 
 
 # Fixture to load an example audio and return (array, sample rate)
 @pytest.fixture(scope="module")
 def wav():
     with path(test_data, "sample.wav.gz") as p, gzip.open(p, "rb") as f:
-        sr, arr = wavfile.read(f)
-        return arr, sr
+        data, sr = sf.read(f)
+        return data, sr
 
 
 @pytest.mark.parametrize(
@@ -93,6 +94,19 @@ def test_pad_silence_exceptions(wav):
     # Non-positive padding
     with pytest.raises(ValueError):
         fx.PadSilence(-1, 0.25)
+
+
+def test_time_stretch(wav):
+    data, sr = wav
+    factor = 0.5
+    effect = fx.TimeStretch(factor=factor)
+    out_data, out_sr = effect.apply_trace(data, sr)
+    assert out_sr == sr
+    # Length will be 1/factor of original
+    # i.e. factor=0.5x, length=2x
+    expected_factor = 1 / factor
+    result_factor = len(out_data) / len(data)
+    assert math.isclose(result_factor, expected_factor, rel_tol=0.01)
 
 
 # Wrapper
