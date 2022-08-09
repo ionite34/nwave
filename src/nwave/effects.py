@@ -7,7 +7,7 @@ import numpy as np
 import soxr
 from numpy.typing import NDArray
 
-from .base import BaseEffect
+from nwave.base import BaseEffect
 
 __all__ = ["Wrapper", "Resample", "PadSilence"]
 
