@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 from os import listdir
-from os.path import exists
-from os.path import join
+from os.path import exists, join
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
