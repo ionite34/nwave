@@ -22,8 +22,8 @@ jobs:
 
     # Need to install libsndfile for linux
     - name: System Dependencies
-      if: ${{ matrix.os }} == "ubuntu-latest"
       run: sudo apt-get install libsndfile1
+      if: matrix.os == 'ubuntu-latest'
 
     - name: Cache Poetry
       uses: actions/cache@v2
