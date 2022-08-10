@@ -4,14 +4,11 @@ import os
 from glob import glob
 from os import PathLike
 from pathlib import Path
-from typing import Iterable
-from typing import Iterator
-from typing import NamedTuple
+from typing import Iterable, Iterator, NamedTuple
 
 from .base import BaseEffect
 from .core import WaveCore
-from .task import Task
-from .task import TaskResult
+from .task import Task, TaskResult
 
 
 class Paths(NamedTuple):

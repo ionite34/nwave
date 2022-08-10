@@ -5,15 +5,10 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 
 from colorama import Fore
-from joblib import delayed
-from joblib import Parallel
+from joblib import Parallel, delayed
 from tqdm import tqdm
 
-from nwave import audio
-from nwave import Batch
-from nwave import effects
-from nwave import Task
-from nwave import WaveCore
+from nwave import Batch, Task, WaveCore, audio, effects
 from tests_profile import data
 
 

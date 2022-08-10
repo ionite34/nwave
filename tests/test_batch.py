@@ -3,11 +3,7 @@ from __future__ import annotations
 import os
 from glob import glob
 
-from nwave import Batch
-from nwave import effects
-from nwave import Task
-from nwave import TaskException
-from nwave import TaskResult
+from nwave import Batch, Task, TaskException, TaskResult, effects
 
 
 def test_batch():

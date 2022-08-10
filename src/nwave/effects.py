@@ -3,11 +3,12 @@ from __future__ import annotations
 import numbers
 from typing import Callable
 
+import librosa
 import numpy as np
 import soxr
 from numpy.typing import NDArray
 
-from .base import BaseEffect
+from nwave.base import BaseEffect
 
 __all__ = ["Wrapper", "Resample", "PadSilence"]
 
@@ -20,7 +21,7 @@ class Wrapper(BaseEffect):
         sr_arg: str | None = None,
         output_sr_override: float | None = None,
         **kwargs,
-    ):
+    ) -> None:
         """
         Wrapper for any Callable as an Audio Effect. The function
         must return a NDArray or a 2 length tuple containing a NDArray
@@ -81,7 +82,7 @@ class Wrapper(BaseEffect):
 
 
 class Resample(BaseEffect):
-    def __init__(self, sample_rate: int, quality: str = "HQ"):
+    def __init__(self, sample_rate: int, quality: str = "HQ") -> None:
         """
         Resamples the audio to a new sample rate.
 
@@ -110,7 +111,7 @@ class Resample(BaseEffect):
 
 
 class PadSilence(BaseEffect):
-    def __init__(self, start: float, end: float):
+    def __init__(self, start: float, end: float) -> None:
         """
         Pads the beginning and end of the audio with silence.
 
@@ -143,3 +144,23 @@ class PadSilence(BaseEffect):
         end_samples = np.zeros(pad_e, dtype=np.float32)
         # Concatenate arrays and return
         return np.concatenate((start_samples, data, end_samples), dtype=np.float32), sr
+
+
+class TimeStretch(BaseEffect):
+    def __init__(self, factor: float) -> None:
+        """
+        Time stretches the audio by a factor.
+
+        Args:
+            factor: Time stretch factor. >1.0 will speed up, <1.0 will slow down.
+        """
+        if factor <= 0:
+            raise ValueError("Factor must be positive.")
+        super().__init__()
+        self.factor = factor
+
+    def apply(self, data: NDArray, sr: float) -> tuple[NDArray, float]:
+        """
+        Time stretches a wave array by a factor.
+        """
+        return librosa.effects.time_stretch(data, rate=self.factor), sr

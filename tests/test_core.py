@@ -6,14 +6,11 @@ from unittest.mock import patch
 
 import pytest
 
-from nwave import __version__
-from nwave import Batch
-from nwave import effects
-from nwave import WaveCore
+from nwave import Batch, WaveCore, __version__, effects
 
 
 def test_version():
-    assert __version__ == "0.1.2"
+    assert __version__ == "0.1.3"
 
 
 def test_core(data_dir):

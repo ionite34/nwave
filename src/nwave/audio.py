@@ -3,8 +3,7 @@ from __future__ import annotations
 from scipy.io import wavfile
 
 from nwave import interlocked
-from nwave.task import Task
-from nwave.task import TaskException
+from nwave.task import Task, TaskException
 
 
 def process(task: Task):

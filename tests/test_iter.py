@@ -6,8 +6,7 @@ from typing import Generator
 import pytest
 from tqdm import tqdm
 
-from nwave.common.iter import sized_generator
-from nwave.common.iter import SizedGenerator
+from nwave.common.iter import SizedGenerator, sized_generator
 
 
 @pytest.fixture(scope="function")
@@ -57,7 +56,7 @@ def test_decorator(make_gen):
         assert v == i
 
     # Check out of range
-    with pytest.raises(IndexError):
+    with pytest.raises(StopIteration):
         next(gen)
 
     # Check throw

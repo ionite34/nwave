@@ -4,13 +4,11 @@ import os
 import time
 import typing as t
 from collections import deque
-from concurrent.futures import Future
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import Future, ThreadPoolExecutor
 
-from .audio import process
-from .common.iter import SizedGenerator
-from .task import Task
-from .task import TaskResult
+from nwave.audio import process
+from nwave.common.iter import SizedGenerator
+from nwave.task import Task, TaskResult
 
 if t.TYPE_CHECKING:
     from .batch import Batch  # pragma: no cover
