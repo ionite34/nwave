@@ -7,7 +7,8 @@ from os import PathLike
 from pathlib import Path
 
 if t.TYPE_CHECKING:  # pragma: no cover
-    from nwave.base import BaseEffect
+    from nwave.abc import BaseEffect
+    from nwave.audio import Codec, Format
 
 # Make a type alias for AnyPath
 AnyPath = t.Union[str, PathLike, Path]
@@ -21,14 +22,19 @@ class Task:
     file_output: Path
     effects: list[BaseEffect]
     overwrite: bool
+    format: Format | str | None  # noqa: A003
+    codec: Codec | str | None
 
+    # noinspection PyShadowingBuiltins
     def __init__(
         self,
         file_source: AnyPath,
         file_output: AnyPath,
         effects: list[BaseEffect],
-        overwrite: bool,
-    ):
+        overwrite: bool = False,
+        format: Format | str | None = None,  # noqa: A002
+        codec: Codec | str | None = None,
+    ) -> None:
         self.file_source = (
             file_source if isinstance(file_source, Path) else Path(file_source)
         )
@@ -37,6 +43,8 @@ class Task:
         )
         self.effects = effects
         self.overwrite = overwrite
+        self.format = str(format) if format else None
+        self.codec = str(codec) if codec else None
 
 
 @dataclass(frozen=True)

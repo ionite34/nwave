@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from nwave.base import BaseEffect
+from nwave.abc import BaseEffect
 
 
 def test_base_effect():

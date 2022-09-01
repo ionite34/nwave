@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 
 from numpy.typing import NDArray
 
-from ..task import TaskException
+from nwave.task import TaskException
 
 
 class BaseEffect(ABC):
@@ -43,4 +43,4 @@ class BaseEffect(ABC):
             return self.apply(data, sr)
         except Exception as e:
             # Raise with current class name
-            raise TaskException(e, self.__class__.__name__)
+            raise TaskException(e, self.__class__.__name__) from e

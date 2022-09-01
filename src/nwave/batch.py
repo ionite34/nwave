@@ -6,9 +6,10 @@ from os import PathLike
 from pathlib import Path
 from typing import Iterable, Iterator, NamedTuple
 
-from .base import BaseEffect
-from .core import WaveCore
-from .task import Task, TaskResult
+from nwave.abc import BaseEffect
+from nwave.audio import Codec, Format
+from nwave.core import WaveCore
+from nwave.task import Task, TaskResult
 
 
 class Paths(NamedTuple):
@@ -49,18 +50,21 @@ def parse_path(
 
 
 class Batch:
+    # noinspection PyShadowingBuiltins
     def __init__(
         self,
-        input_files: Iterable[str | PathLike] | str,
-        output_files: Iterable[str | PathLike] | str,
+        input_files: Iterable[str | PathLike] | str | PathLike,
+        output_files: Iterable[str | PathLike] | str | PathLike,
         overwrite: bool = False,
+        format: Format | str | None = None,  # noqa: A002
+        codec: Codec | str | None = None,
     ):
         """
         Initialize a new batch.
 
         Args:
-            input_files: List of source files to process.
-            output_files: List of target files to write.
+            input_files: Single or Iterable of input file paths.
+            output_files: Single or Iterable of output file paths.
             overwrite: Whether to overwrite the target files.
         """
         self.overwrite = overwrite
@@ -69,7 +73,8 @@ class Batch:
         paths = parse_path(input_files, output_files)
         # Create tasks
         self.tasks = [
-            Task(src, dst, self.effects, self.overwrite) for src, dst in paths
+            Task(src, dst, self.effects, self.overwrite, format, codec)
+            for src, dst in paths
         ]
 
     def run(self, threads: int | None = None) -> list[TaskResult]:
