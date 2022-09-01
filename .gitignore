@@ -1,4 +1,5 @@
 # Project Specific
+/_*.py
 tests_profile/data/*.wav
 tests_profile/data/*.zip
 tests_profile/data/*.ini
