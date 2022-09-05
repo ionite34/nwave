@@ -41,7 +41,7 @@ black = "^22.6.0"
 tox = "^3.25.1"
 pre-commit = "^2.20.0"
 yaspin = "^2.1.0"
-tqdm = "^4.64.0"
+tqdm = "^4.64.1"
 colorama = "^0.4.5"
 
 [tool.pylint.messages_control]
