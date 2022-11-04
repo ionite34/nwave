@@ -1,5 +1,6 @@
 # Project Specific
 /_*.py
+/_*.ipynb
 _local/
 tests_profile/data/*.wav
 tests_profile/data/*.zip
