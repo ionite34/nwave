@@ -44,6 +44,9 @@ yaspin = "^2.1.0"
 tqdm = "^4.64.0"
 colorama = "^0.4.5"
 
+[tool.poetry.group.jupyter.dependencies]
+jupyter = "^1.0.0"
+
 [tool.pylint.messages_control]
 max-line-length = 88
 disable = [
