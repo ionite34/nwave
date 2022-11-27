@@ -38,7 +38,7 @@ class WaveCore:
             WaveCore
         """
         self._executor = ThreadPoolExecutor(
-            max_workers=self.threads, thread_name_prefix="WaveCore"
+            max_workers=self.threads, thread_name_prefix=self.__class__.__name__
         )
         return self
 
